@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - "feature/**"
+      - "fix/**"
+      - "chore/**"
+      - "refactor/**"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        if: hashFiles('package.json') != ''
+        run: npm ci
+
+      - name: Build
+        if: hashFiles('package.json') != ''
+        run: npm run build
+
+      - name: Test
+        if: hashFiles('package.json') != ''
+        run: npm run test
+
+      - name: Lint
+        if: hashFiles('package.json') != ''
+        run: npm run lint
+
+      - name: Audit
+        if: hashFiles('package.json') != ''
+        run: npm audit --audit-level=moderate

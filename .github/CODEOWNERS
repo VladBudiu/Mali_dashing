@@ -1,0 +1,21 @@
+* @VladBudiu
+
+/.github/ @VladBudiu
+/.github/workflows/ @VladBudiu
+/AGENTS.md @VladBudiu
+/DEV_RULES.md @VladBudiu
+/CLAUDE.md @VladBudiu
+/PROJECT_SOURCE_OF_TRUTH.md @VladBudiu
+/docs/rules/ @VladBudiu
+/docs/commands/ @VladBudiu
+/docs/agents/ @VladBudiu
+/docs/skills/ @VladBudiu
+/docs/security/ @VladBudiu
+/docs/context/ @VladBudiu
+/docs/plan/ @VladBudiu
+/docs/architecture/ @VladBudiu
+/supabase/ @VladBudiu
+/src/ @VladBudiu
+/package.json @VladBudiu
+/next.config.ts @VladBudiu
+/tsconfig.json @VladBudiu
