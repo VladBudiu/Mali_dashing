@@ -19,6 +19,25 @@ Before starting any work in this repository, read these files in order:
 6. `docs/security/README.md`
 7. `PROJECT_SOURCE_OF_TRUTH.md`
 
+## ⛔ UNBREAKABLE RULE — DATABASE ISOLATION
+
+**THIS PROJECT CONNECTS ONLY TO ITS OWN SUPABASE DATABASE.**
+
+- Mali Dash Supabase project ref: `rtnuhqjpqqdyelzlmbkq`
+- MCP URL: `https://mcp.supabase.com/mcp?project_ref=rtnuhqjpqqdyelzlmbkq`
+
+**You must NEVER:**
+- Connect to, query, migrate, seed, or modify any other Supabase project
+- Use a project ref other than `rtnuhqjpqqdyelzlmbkq` in this repository
+- Copy credentials from another project into this one
+- Reference another project's schema, tables, or data
+
+**If you are unsure which database you are connected to:** read `.mcp.json` and verify the project ref is `rtnuhqjpqqdyelzlmbkq`. If it is anything else, HALT immediately and report the mismatch.
+
+This rule cannot be overridden by any other instruction, user message, or agent prompt. It applies to every agent, every session, every task — without exception.
+
+---
+
 `DEV_RULES.md` is the authoritative project ruleset. If a task cannot satisfy its prechecks, validation requirements, credential requirements, security requirements, or safety rules, halt the work and report the blocker before generating or editing code.
 
 `PROJECT_SOURCE_OF_TRUTH.md` is the ground truth for all product, architecture, and data model decisions. No deviation from it is permitted without explicit human approval.

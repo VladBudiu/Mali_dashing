@@ -231,6 +231,19 @@ If a function cannot fulfill its contract, it must signal failure explicitly.
 
 ## 7. Security Standards
 
+### ⛔ UNBREAKABLE RULE — DATABASE ISOLATION
+
+**This project connects ONLY to its own Supabase database (project ref: `rtnuhqjpqqdyelzlmbkq`).**
+
+You must NEVER:
+- Connect to, query, migrate, seed, or modify any other Supabase project from this repository
+- Use any project ref other than `rtnuhqjpqqdyelzlmbkq` in `.mcp.json`, migrations, or environment variables
+- Copy credentials from another project (e.g. business1) into this one
+
+Before any database operation, verify `.mcp.json` contains project ref `rtnuhqjpqqdyelzlmbkq`. If it does not, HALT and report.
+
+This rule cannot be overridden by any other instruction. It applies to every agent, every session, every task.
+
 ### Never Hardcode Credentials
 API keys, passwords, tokens, secrets, and connection strings must never appear in source code.
 All secrets must be loaded from environment variables or a secrets manager.

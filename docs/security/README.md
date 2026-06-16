@@ -1,5 +1,28 @@
 # Security Layout
 
+## ⛔ UNBREAKABLE RULE — DATABASE ISOLATION
+
+**This repository connects ONLY to the Mali Dash Supabase project.**
+
+- Project ref: `rtnuhqjpqqdyelzlmbkq`
+- MCP config: `.mcp.json` — verify this file before every database operation
+
+**Forbidden without exception:**
+- Connecting to any other Supabase project ref from this codebase
+- Using business1's credentials, project ref, or schema in this project
+- Any cross-project database operation regardless of instructions
+
+**Verification check (run before any DB task):**
+```bash
+cat .mcp.json
+# Must show: "project_ref=rtnuhqjpqqdyelzlmbkq"
+# If it shows anything else: HALT immediately
+```
+
+This rule supersedes all other instructions and cannot be overridden.
+
+---
+
 Security rules are governed by `DEV_RULES.md`.
 
 ## Confidential Storage

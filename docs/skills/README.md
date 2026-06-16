@@ -11,6 +11,12 @@ This folder records the project skills that may be used by agents.
 - `ocr.md`: Azure Document Intelligence + OpenAI normalization pipeline.
 - `fx.md`: BNR/ECB exchange rate fetch, cache, and snapshot workflow.
 
+## Installed Skills
+
+- `.agents/skills/supabase`: Supabase workflow guidance — installed via `npx skills add supabase/agent-skills`
+- `.agents/skills/supabase-postgres-best-practices`: Postgres design and query guidance — installed via `npx skills add supabase/agent-skills`
+- `skills-lock.json`: lock file for installed skills
+
 ## Skill Rule
 
 Skills do not override `DEV_RULES.md`. They provide task-specific workflows only.
