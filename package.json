@@ -1,0 +1,25 @@
+{
+  "name": "mali-dash",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace @mali/web",
+    "build": "npm run build --workspace @mali/web",
+    "start": "npm run start --workspace @mali/web",
+    "lint": "npm run lint --workspace @mali/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "vitest run"
+  },
+  "overrides": {
+    "postcss": "^8.5.15"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "typescript": "^5",
+    "vitest": "4.1.8"
+  }
+}
