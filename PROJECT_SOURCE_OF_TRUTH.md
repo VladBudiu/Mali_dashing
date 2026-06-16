@@ -1,5 +1,10 @@
 # Blueprint de implementare pentru un dashboard PWA mobil-first pentru o afacere de decorațiuni de evenimente din România
 
+> **Note de implementare (actualizat 2026-06-17).** Decizii confirmate care actualizează acest blueprint:
+> - **UI:** se folosește **MUI Material** (`@mui/material`), nu MUI Joy. Joy este în mod maintenance upstream; Material este activ dezvoltat și se integrează curat cu MUI X. SSR prin registru Emotion propriu (`useServerInsertedHTML`). Vezi [ADR 2026-06-17](docs/architecture/adr/2026-06-17-monorepo-and-mui-material.md).
+> - **Monorepo:** structura `apps/web` + `packages/*` se implementează cu **npm workspaces** (nu pnpm — npm este toolchain-ul proiectului). Pachete: `@mali/config`, `@mali/types`, `@mali/utils`.
+> - **Bază de date:** acest proiect se conectează EXCLUSIV la propriul Supabase (`rtnuhqjpqqdyelzlmbkq`). Vezi `AGENTS.md` / `DEV_RULES.md`.
+
 ## Rezumat executiv
 
 Acest raport transformă brief-ul tău într-un plan central de produs și dezvoltare care poate ghida direct Codex, Cursor sau alți agenți. Am tratat cerințele din conversație și fișierul încărcat ca specificație de bază pentru soluție. fileciteturn0file0
@@ -228,7 +233,7 @@ Documentația Next.js pentru PWAs descrie exact mecanismele de care ai nevoie: m
 | Decizie | Opțiune recomandată | De ce |
 |---|---|---|
 | Frontend | **Next.js + React + TypeScript** | PWA, SSR/ISR, route handlers, ecosistem solid |
-| UI | **MUI Joy + MUI X selectiv** | componente mature, formulare și tabele bune pe mobil |
+| UI | **MUI Material + MUI X selectiv** | componente mature, formulare și tabele bune pe mobil (vezi nota de implementare) |
 | Backend | **Supabase + SQL RPC + route handlers** | reduce infrastructura pentru MVP |
 | DB | **Postgres** | relații, SQL, agregări, audit, extensibilitate |
 | Auth | **Supabase Auth** | integrare directă cu RLS și Postgres |

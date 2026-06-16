@@ -17,4 +17,6 @@ As each roadmap phase begins, a detailed implementation plan will be added here:
 
 ## Current Phase
 
-Phase 0 — governance setup complete. Phase 1 scaffold pending.
+- Phase 0 — governance setup: **complete**.
+- Phase 1 — scaffold + design system: **complete** (monorepo, app shell, PWA wiring, Supabase client layer, initial org/auth migration, CI-green).
+- Phase 2 — auth + tenant model + RLS: **next**.
