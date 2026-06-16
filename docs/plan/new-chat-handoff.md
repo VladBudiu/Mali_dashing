@@ -2,6 +2,19 @@
 
 > Last updated: 2026-06-17, end of Phase 1. Read this first to resume work directly.
 
+## ▶ Resume checklist (do this first, in order)
+
+1. **Confirm the Supabase MCP is loaded** this session: the `mcp__supabase__*` tools must be
+   available (ToolSearch `supabase`). If they're not, stop — the session still can't reach the DB.
+2. **Verify isolation:** confirm the MCP/`.mcp.json` project ref is `rtnuhqjpqqdyelzlmbkq`. If not, HALT.
+3. **Git base:** Phase 1 is on branch `feature/phase-1-scaffold` (PR #1, open). Merge PR #1 to `main`
+   first, then `git switch main && git pull && git switch -c feature/phase-2-auth`.
+   (If not merging yet, branch Phase 2 from `feature/phase-1-scaffold`.)
+4. **Env:** via the MCP, fetch the project URL + anon key and write `apps/web/.env.local`
+   (gitignored) — `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`. No manual pasting.
+5. **Run prechecks** (`git fetch`, status, conflict scan), then begin Phase 2 (tasks below).
+6. Keep the gates green before any push: `npm run build && npm run test && npm run lint && npm audit --audit-level=moderate`.
+
 ## TL;DR
 
 Phase 0 (governance) and Phase 1 (scaffold + design system) are **complete and green**.
