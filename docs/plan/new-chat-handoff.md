@@ -53,25 +53,30 @@ npm run dev      # then open http://localhost:3000 -> redirects to /dashboard
 
 ## What Phase 2 needs (the blocker)
 
-Phase 2 = auth + tenant model + RLS. It cannot be done or verified without:
+Phase 2 = auth + tenant model + RLS. The single prerequisite is a **connected Supabase MCP**.
 
-1. **Supabase env vars** in `apps/web/.env.local` (and Vercel later):
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY` (server-only jobs; never client)
-   These live in the Supabase dashboard for project `rtnuhqjpqqdyelzlmbkq`.
-   Put real values only in `.env.local` (gitignored) or `.confidential/credentials.md`.
-2. **Live DB access to apply migrations + run RLS integration tests.** Either:
-   - the Supabase MCP tools (`mcp__supabase__*`) actually connected in the session
-     (they were configured in `.mcp.json` but were NOT loaded in the Phase 1 session), or
-   - a direct `SUPABASE_DB_URL` connection string, or
-   - Docker Desktop + Supabase CLI for a local stack (`npx supabase db reset --local`).
+**The Supabase MCP is sufficient on its own** — when its `mcp__supabase__*` tools are loaded it can
+apply migrations, run SQL (so RLS is testable by querying as different roles), generate the
+`Database` type, and fetch the project URL + anon key. A separate `SUPABASE_DB_URL` or local
+Docker stack are only fallbacks if the MCP cannot be connected.
 
-Until one of those is available, Phase 2 auth/RLS work can be written but not verified, so it should not be merged.
+The MCP was configured in `.mcp.json` (`project_ref=rtnuhqjpqqdyelzlmbkq`) but its tools were
+**NOT loaded** in the Phase 0/1 sessions. To unblock: connect + authenticate it
+(`claude` → `/mcp` → supabase → connected), restart the session so the tools load, and confirm
+it is **not read-only** (migrations need write + the database feature group).
+
+**Env-var handling (decided by Vlad 2026-06-17):** once the MCP is connected, pull
+`NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` via the MCP and write them to
+`apps/web/.env.local` (gitignored) — no manual secret-passing. The anon key is browser-safe.
+The `SUPABASE_SERVICE_ROLE_KEY` is only needed if/when a server-side job requires it — ask then;
+never put it in client code.
+
+Until the MCP is connected, Phase 2 auth/RLS work can be written but not verified, so it should not be merged.
 
 ## Phase 2 task breakdown (once unblocked)
 
-1. Apply `0001_init_org_auth.sql` to the live DB; verify project ref first.
+0. Verify MCP project ref is `rtnuhqjpqqdyelzlmbkq`, then fetch URL+anon key via MCP → write `apps/web/.env.local`.
+1. Apply `0001_init_org_auth.sql` to the live DB via the MCP.
 2. Auth flow (Supabase Auth, magic link/OTP per blueprint):
    - sign-in server action + `/login` form (client) + `/auth/callback` route handler
    - `proxy.ts`/middleware for session refresh + route protection (redirect unauthenticated to `/login`)
