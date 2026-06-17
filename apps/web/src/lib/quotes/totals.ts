@@ -1,3 +1,4 @@
+import { roundMoney } from "@/lib/money/format";
 import type { QuoteLineRow } from "./queries";
 
 export type QuoteTotals = {
@@ -14,18 +15,20 @@ export function calculateQuoteTotals(
   discountPct: number,
   fixedDiscountNet: number,
 ): QuoteTotals {
-  const subtotalNet = lines.reduce(
-    (sum, line) => sum + roundMoney(line.quantity * line.unit_price_net),
-    0,
+  const subtotalNet = roundMoney(
+    lines.reduce(
+      (sum, line) => sum + roundMoney(line.quantity * line.unit_price_net),
+      0,
+    ),
   );
-  const discountNet = roundMoney(subtotalNet * discountPct) + fixedDiscountNet;
+  // A discount can never exceed the subtotal — a quote total must not go
+  // negative, which would otherwise yield negative VAT and gross amounts.
+  const rawDiscountNet =
+    roundMoney(subtotalNet * discountPct) + fixedDiscountNet;
+  const discountNet = Math.min(roundMoney(rawDiscountNet), subtotalNet);
   const netAfterDiscount = roundMoney(subtotalNet - discountNet);
   const vatAmount = roundMoney(netAfterDiscount * vatRate);
   const totalGross = roundMoney(netAfterDiscount + vatAmount);
 
   return { subtotalNet, discountNet, netAfterDiscount, vatAmount, totalGross };
-}
-
-function roundMoney(value: number): number {
-  return Math.round(value * 100) / 100;
 }

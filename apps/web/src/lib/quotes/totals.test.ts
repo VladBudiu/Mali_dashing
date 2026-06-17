@@ -68,4 +68,30 @@ describe("calculateQuoteTotals", () => {
     expect(totals.vatAmount).toBe(0);
     expect(totals.totalGross).toBe(200);
   });
+
+  it("should clamp a fixed discount that exceeds the subtotal (no negative total)", () => {
+    const lines = [{ quantity: 1, unit_price_net: 1000 }];
+    const totals = calculateQuoteTotals(lines, 0.19, 0, 2000);
+    expect(totals.discountNet).toBe(1000);
+    expect(totals.netAfterDiscount).toBe(0);
+    expect(totals.vatAmount).toBe(0);
+    expect(totals.totalGross).toBe(0);
+  });
+
+  it("should clamp combined discounts that exceed the subtotal", () => {
+    const lines = [{ quantity: 1, unit_price_net: 1000 }];
+    // 50% (500) + fixed 800 = 1300 raw, capped at the 1000 subtotal
+    const totals = calculateQuoteTotals(lines, 0.19, 0.5, 800);
+    expect(totals.discountNet).toBe(1000);
+    expect(totals.netAfterDiscount).toBe(0);
+    expect(totals.totalGross).toBe(0);
+  });
+
+  it("should never produce a negative total for any single line", () => {
+    const lines = [{ quantity: 2, unit_price_net: 75.5 }];
+    const totals = calculateQuoteTotals(lines, 0.19, 1.5, 0);
+    expect(totals.netAfterDiscount).toBeGreaterThanOrEqual(0);
+    expect(totals.vatAmount).toBeGreaterThanOrEqual(0);
+    expect(totals.totalGross).toBeGreaterThanOrEqual(0);
+  });
 });
