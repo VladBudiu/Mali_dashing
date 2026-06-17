@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
-import NextLink from "next/link";
 import Box from "@mui/material/Box";
-import MuiLink from "@mui/material/Link";
-import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -12,6 +9,9 @@ import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import { resolveCurrentOrg } from "@/lib/org/membership";
 import { listDocuments } from "@/lib/documents/queries";
+import { LinkButton } from "@/components/ui/LinkButton";
+import { NavLink } from "@/components/ui/NavLink";
+import { LinkRow } from "@/components/ui/LinkRow";
 
 export const metadata: Metadata = { title: "Documents" };
 
@@ -64,20 +64,15 @@ export default async function DocumentsPage() {
             />
           )}
         </Typography>
-        <Button
-          component={NextLink}
-          href="/documents/upload"
-          variant="contained"
-          size="small"
-        >
+        <LinkButton href="/documents/upload" variant="contained" size="small">
           Upload
-        </Button>
+        </LinkButton>
       </Box>
 
       {documents.length === 0 ? (
         <Typography color="text.secondary">
           No documents yet.{" "}
-          <MuiLink component={NextLink} href="/documents/upload">Upload the first one.</MuiLink>
+          <NavLink href="/documents/upload">Upload the first one.</NavLink>
         </Typography>
       ) : (
         <Box sx={{ overflowX: "auto" }}>
@@ -94,11 +89,10 @@ export default async function DocumentsPage() {
             </TableHead>
             <TableBody>
               {documents.map((doc) => (
-                <TableRow
+                <LinkRow
                   key={doc.id}
                   hover
                   sx={{ cursor: "pointer" }}
-                  component={NextLink}
                   href={`/documents/${doc.id}`}
                 >
                   <TableCell sx={{ whiteSpace: "nowrap" }}>
@@ -122,7 +116,7 @@ export default async function DocumentsPage() {
                   </TableCell>
                   <TableCell>{doc.events?.title ?? "—"}</TableCell>
                   <TableCell>{formatFileSize(doc.file_size_bytes)}</TableCell>
-                </TableRow>
+                </LinkRow>
               ))}
             </TableBody>
           </Table>

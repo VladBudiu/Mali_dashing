@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
-import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import Chip from "@mui/material/Chip";
 import { resolveCurrentOrg } from "@/lib/org/membership";
 import { listCollaborators } from "@/lib/collaborators/queries";
+import { LinkButton } from "@/components/ui/LinkButton";
+import { LinkListItemButton } from "@/components/ui/LinkListItemButton";
 
 export const metadata: Metadata = { title: "Collaborators" };
 
@@ -23,9 +22,9 @@ export default async function CollaboratorsPage() {
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3 }}>
         <Typography variant="h5" component="h1">Collaborators</Typography>
-        <Button variant="contained" component={Link} href="/collaborators/new">
+        <LinkButton variant="contained" href="/collaborators/new">
           Add collaborator
-        </Button>
+        </LinkButton>
       </Box>
 
       {collaborators.length === 0 ? (
@@ -40,7 +39,7 @@ export default async function CollaboratorsPage() {
               disablePadding
               divider={index < collaborators.length - 1}
             >
-              <ListItemButton component={Link} href={`/collaborators/${collab.id}`}>
+              <LinkListItemButton href={`/collaborators/${collab.id}`}>
                 <ListItemText
                   primary={collab.name}
                   secondary={collab.specialty ?? undefined}
@@ -48,7 +47,7 @@ export default async function CollaboratorsPage() {
                 {!collab.is_active && (
                   <Chip label="Inactive" size="small" sx={{ ml: 1 }} />
                 )}
-              </ListItemButton>
+              </LinkListItemButton>
             </ListItem>
           ))}
         </List>

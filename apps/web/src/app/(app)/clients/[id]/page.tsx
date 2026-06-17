@@ -1,14 +1,14 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import Link from "next/link";
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
 import Chip from "@mui/material/Chip";
 import { resolveCurrentOrg } from "@/lib/org/membership";
 import { getClient } from "@/lib/clients/queries";
 import { deleteClient } from "@/lib/clients/actions";
+import Button from "@mui/material/Button";
+import { LinkButton } from "@/components/ui/LinkButton";
 
 export const metadata: Metadata = { title: "Client" };
 
@@ -65,12 +65,12 @@ export default async function ClientDetailPage({ params }: Props) {
       </Box>
 
       <Box sx={{ display: "flex", gap: 1 }}>
-        <Button variant="outlined" component={Link} href={`/clients/${client.id}/edit`}>
+        <LinkButton variant="outlined" href={`/clients/${client.id}/edit`}>
           Edit
-        </Button>
-        <Button variant="outlined" component={Link} href="/clients">
+        </LinkButton>
+        <LinkButton variant="outlined" href="/clients">
           Back to clients
-        </Button>
+        </LinkButton>
         {canDelete && (
           <form action={deleteClient.bind(null, client.id)}>
             <Button type="submit" variant="outlined" color="error">

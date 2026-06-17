@@ -1,8 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import Link from "next/link";
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
 import Chip from "@mui/material/Chip";
@@ -14,6 +12,8 @@ import TableRow from "@mui/material/TableRow";
 import { resolveCurrentOrg } from "@/lib/org/membership";
 import { getCollaborator, getCollaboratorRates } from "@/lib/collaborators/queries";
 import { deleteCollaborator } from "@/lib/collaborators/actions";
+import Button from "@mui/material/Button";
+import { LinkButton } from "@/components/ui/LinkButton";
 
 export const metadata: Metadata = { title: "Collaborator" };
 
@@ -99,12 +99,12 @@ export default async function CollaboratorDetailPage({ params }: Props) {
       )}
 
       <Box sx={{ display: "flex", gap: 1 }}>
-        <Button variant="outlined" component={Link} href={`/collaborators/${collaborator.id}/edit`}>
+        <LinkButton variant="outlined" href={`/collaborators/${collaborator.id}/edit`}>
           Edit
-        </Button>
-        <Button variant="outlined" component={Link} href="/collaborators">
+        </LinkButton>
+        <LinkButton variant="outlined" href="/collaborators">
           Back
-        </Button>
+        </LinkButton>
         {canDelete && (
           <form action={deleteCollaborator.bind(null, collaborator.id)}>
             <Button type="submit" variant="outlined" color="error">

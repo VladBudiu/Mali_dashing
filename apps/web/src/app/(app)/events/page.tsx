@@ -1,16 +1,15 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
-import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import Chip from "@mui/material/Chip";
 import { resolveCurrentOrg } from "@/lib/org/membership";
 import { listEvents } from "@/lib/events/queries";
 import { EVENT_STATUS_LABELS, EVENT_STATUS_COLOR } from "@/lib/events/status";
+import { LinkButton } from "@/components/ui/LinkButton";
+import { LinkListItemButton } from "@/components/ui/LinkListItemButton";
 
 export const metadata: Metadata = { title: "Events" };
 
@@ -22,9 +21,9 @@ export default async function EventsPage() {
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3 }}>
         <Typography variant="h5" component="h1">Events</Typography>
-        <Button variant="contained" component={Link} href="/events/new">
+        <LinkButton variant="contained" href="/events/new">
           New event
-        </Button>
+        </LinkButton>
       </Box>
 
       {events.length === 0 ? (
@@ -39,7 +38,7 @@ export default async function EventsPage() {
               disablePadding
               divider={index < events.length - 1}
             >
-              <ListItemButton component={Link} href={`/events/${event.id}`}>
+              <LinkListItemButton href={`/events/${event.id}`}>
                 <ListItemText
                   primary={event.title}
                   secondary={[
@@ -54,7 +53,7 @@ export default async function EventsPage() {
                   size="small"
                   sx={{ ml: 1 }}
                 />
-              </ListItemButton>
+              </LinkListItemButton>
             </ListItem>
           ))}
         </List>

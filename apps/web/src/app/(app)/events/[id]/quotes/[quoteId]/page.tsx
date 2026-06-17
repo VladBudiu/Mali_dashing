@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import Link from "next/link";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
@@ -16,6 +15,8 @@ import { getEvent } from "@/lib/events/queries";
 import { getQuote, getQuoteLines } from "@/lib/quotes/queries";
 import { deleteQuoteLine, updateQuoteStatus } from "@/lib/quotes/actions";
 import AddLineForm from "@/components/quotes/AddLineForm";
+import { LinkButton } from "@/components/ui/LinkButton";
+import { NavLink } from "@/components/ui/NavLink";
 
 export const metadata: Metadata = { title: "Quote" };
 
@@ -56,7 +57,7 @@ export default async function QuoteDetailPage({ params }: Props) {
         <Chip label={quote.status} size="small" variant="outlined" />
       </Box>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        <Link href={`/events/${eventId}`}>{event.title}</Link>
+        <NavLink href={`/events/${eventId}`}>{event.title}</NavLink>
         {" · "}
         Created {new Date(quote.created_at).toLocaleDateString("ro-RO")}
       </Typography>
@@ -136,9 +137,9 @@ export default async function QuoteDetailPage({ params }: Props) {
             </Button>
           </form>
         ))}
-        <Button variant="outlined" component={Link} href={`/events/${eventId}`}>
+        <LinkButton variant="outlined" href={`/events/${eventId}`}>
           Back to event
-        </Button>
+        </LinkButton>
       </Box>
     </Box>
   );
