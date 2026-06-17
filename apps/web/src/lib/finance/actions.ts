@@ -10,10 +10,17 @@ export type FinanceFormState =
   | { status: "idle" }
   | { status: "error"; message: string };
 
+// ISO 4217 codes are exactly three letters; reject anything else so a bad code
+// can never be persisted and later crash a render.
+const currencyCode = z
+  .string()
+  .regex(/^[A-Za-z]{3}$/, "Currency must be a 3-letter code")
+  .transform((c) => c.toUpperCase());
+
 const TransactionSchema = z.object({
   type: z.enum(["income", "expense"]),
   amount: z.coerce.number().positive("Amount must be positive"),
-  currency: z.string().length(3).default("RON"),
+  currency: currencyCode.default("RON"),
   description: z.string().min(1, "Description is required").max(500),
   transaction_date: z.string().min(1, "Date is required"),
   reference_no: z.string().max(100).optional(),
@@ -110,7 +117,7 @@ export async function deleteTransaction(transactionId: string): Promise<void> {
 
 const ExpenseClaimSchema = z.object({
   amount: z.coerce.number().positive("Amount must be positive"),
-  currency: z.string().length(3).default("RON"),
+  currency: currencyCode.default("RON"),
   description: z.string().min(1, "Description is required").max(500),
   notes: z.string().max(2000).optional(),
   amount_ron: z.coerce.number().positive().nullable().optional(),

@@ -63,4 +63,25 @@ describe("parseBnrXml", () => {
     const result = parseBnrXml(SAMPLE_XML);
     expect(findRate(result, "JPY")).toBeUndefined();
   });
+
+  it("filters out non-positive rates", () => {
+    const xml = `<Cube date="2026-06-17">
+      <Rate currency="EUR">5.00</Rate>
+      <Rate currency="BAD">0</Rate>
+    </Cube>`;
+    const result = parseBnrXml(xml);
+    expect(findRate(result, "EUR")?.rate).toBeCloseTo(5, 4);
+    expect(findRate(result, "BAD")).toBeUndefined();
+  });
+
+  it("handles a comma decimal separator defensively", () => {
+    const xml = `<Cube date="2026-06-17"><Rate currency="EUR">4,9712</Rate></Cube>`;
+    const result = parseBnrXml(xml);
+    expect(findRate(result, "EUR")?.rate).toBeCloseTo(4.9712, 4);
+  });
+
+  it("is resilient to malformed XML (returns no rates, does not throw)", () => {
+    expect(() => parseBnrXml("not xml at all <<<")).not.toThrow();
+    expect(parseBnrXml("not xml at all <<<").rates).toHaveLength(0);
+  });
 });

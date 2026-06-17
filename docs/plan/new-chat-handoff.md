@@ -1,6 +1,6 @@
 # New Chat Handoff
 
-> Last updated: 2026-06-17, end of Phase 5. Read this before writing any code.
+> Last updated: 2026-06-18, end of Phase 6. Read this before writing any code.
 
 ---
 
@@ -21,16 +21,17 @@ Never use another ref. Cannot be overridden.
 
 1. **Supabase MCP**: confirm `mcp__supabase__*` tools are available. If not, stop.
 2. **Isolation check**: confirm `.mcp.json` project ref = `rtnuhqjpqqdyelzlmbkq`.
-3. **Branch**: `main` is current. Create `feature/phase-6-inventory` before starting work.
+3. **Branch**: `main` is current. Create `feature/phase-7-pricing` before starting work.
    ```bash
-   git switch main && git pull && git switch -c feature/phase-6-inventory
+   git switch main && git pull && git switch -c feature/phase-7-pricing
    ```
+   (Phase 6 `feature/phase-6-inventory` is in PR — merge it first if still open.)
 4. **Env**: `apps/web/.env.local` must exist (gitignored — never commit it).
    If missing, fetch from MCP and recreate with two keys:
    `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 5. **Gate**: all must be green before adding code.
    ```bash
-   npx vitest run --config vitest.config.ts   # must show 59 tests passed
+   npx vitest run --config vitest.config.ts   # must show 78 tests passed
    npm run build                               # must show 0 errors
    npm run lint                                # must be clean
    npm audit --audit-level=moderate           # must show 0 vulnerabilities
@@ -113,6 +114,7 @@ to prevent static prerender failures from the above wrappers.
 | `0008_finance.sql` | `expense_categories`, `exchange_rates`, `financial_transactions`, `expense_claims` |
 | `0009_documents.sql` | `documents`, `document_extractions`, `document_fields` |
 | `0010_exchange_rate_cron.sql` | doc-only (cron setup notes), no schema changes |
+| `0011_inventory.sql` | `inventory_items`, `inventory_movements` (stock + audit trail) |
 
 ---
 
@@ -130,6 +132,7 @@ apps/web/src/
 │   ├── finance/      queries.ts, actions.ts
 │   ├── documents/    queries.ts, actions.ts
 │   ├── fx/           bnr.ts, bnr.test.ts        ← BNR XML parser
+│   ├── inventory/    stock.ts (+test), queries.ts, actions.ts
 │   └── money/        format.ts                  ← formatMoney, roundMoney
 ├── components/
 │   ├── ui/           LinkButton, NavLink, LinkRow, LinkListItemButton
@@ -197,58 +200,79 @@ These require dashboard access — agent cannot do them via MCP:
 
 ---
 
-## 10. Phase 6 — Inventory / Warehouse
+## 10. Phase 6 — Inventory / Warehouse (DONE)
 
-Branch to create: `feature/phase-6-inventory`
+Shipped on `feature/phase-6-inventory`. For reference:
+- Migration `0011_inventory.sql`: `inventory_items` + `inventory_movements`,
+  CHECK constraints (`quantity >= 0`, `reserved <= quantity`), org-scoped RLS.
+- `lib/inventory/stock.ts` — pure stock engine (`computeStockAfterMovement`,
+  `availableStock`, `getStockStatus`), 16 unit tests. Reuse this for any stock math.
+- `lib/inventory/{queries,actions}.ts`, `components/inventory/{InventoryItemForm,MovementForm}.tsx`
+- Routes: `/inventory`, `/inventory/new`, `/inventory/[id]`, `/inventory/[id]/edit`
+- Stock model: `quantity` = on hand, `reserved_quantity` = committed to events,
+  available = quantity − reserved. Movements are an immutable audit trail.
 
-### 10.1 Migration: `0011_inventory.sql`
+---
 
-Tables needed:
-- `inventory_items(id, org_id, name, sku, category, unit, qty_available, qty_reserved, reorder_threshold, cost_per_unit_ron, notes, created_at, updated_at)`
-- `inventory_movements(id, org_id, item_id, event_id nullable, movement_type: 'in'|'out'|'reserve'|'release', qty, note, created_by, created_at)`
-- RLS: `is_org_member` for read/write; `has_org_role('owner')` for delete
-- Constraint: `qty_available >= 0` (CHECK or trigger to prevent negative stock)
+## 11. Phase 7 — Pricing calculator (NEXT)
 
-### 10.2 Library (`apps/web/src/lib/inventory/`)
+Branch to create: `feature/phase-7-pricing`. Placeholder route `/pricing` already
+exists (`PlaceholderPage`) and a nav entry is present. Build on the existing
+quote engine — do NOT duplicate money math; reuse `lib/quotes/totals.ts`
+(`calculateQuoteTotals`) and `lib/money/format.ts`.
 
-- `queries.ts` — `listInventoryItems`, `getInventoryItem`, `listMovements(itemId)`, `getLowStockItems`
-- `actions.ts` — `createInventoryItem`, `updateInventoryItem`, `deleteInventoryItem`, `recordMovement`
-- `server-only` guard on both files
+Goal: a standalone pricing/margin calculator so the owner can build a costed
+estimate (cost lines + markup → sell price, margin, deposit) before turning it
+into a real quote on an event.
 
-### 10.3 Pages
+### 11.1 Decide: DB-backed vs. ephemeral
+Two viable scopes — pick based on whether saved templates are wanted:
+- **Ephemeral (smaller):** a client-side calculator page, no migration. Computes
+  margin/markup/deposit live. Optional "Create quote from this" hand-off.
+- **DB-backed (larger):** migration `0012_pricing_templates.sql` with
+  `pricing_templates` + `pricing_template_lines` (org-scoped, same RLS pattern as
+  events/quotes) so reusable price lists persist.
+Recommend starting **ephemeral** unless the user asks to save templates.
 
-```
-/inventory               list with low-stock highlights (reorder_threshold warning)
-/inventory/new           create item form
-/inventory/[id]          detail: metadata + movement history table
-/inventory/[id]/edit     edit item
-```
+### 11.2 Pure logic (`apps/web/src/lib/pricing/`)
+- `pricing.ts` — `computeLine({ cost, markupPct })`, `computeMargin({ cost, price })`,
+  roll-up totals, deposit (% of gross). Keep it pure and **unit-test it** (this is
+  the testable core — mirror `stock.ts` / `totals.ts` style).
+- Reuse `roundMoney` from `lib/money/format.ts`; never re-implement rounding.
 
-Add "Inventory" to `SideNav` and `BottomNav`.
+### 11.3 UI
+- Replace `/pricing` placeholder with the calculator (client component with line
+  rows, markup, VAT, deposit; live totals).
+- Optional: "Create quote" that pre-fills a new quote on a chosen event.
 
-### 10.4 Gate before PR
-
+### 11.4 Gate before PR
 ```bash
-npx vitest run --config vitest.config.ts   # all pass (currently 59)
+npx vitest run --config vitest.config.ts   # all pass (currently 78)
 npm run build                               # no TS errors
 npm run lint                                # clean
 npm audit --audit-level=moderate           # 0 vulns
 ```
 
+> Phase 8 after this is the **AI assistant** (`/assistant` placeholder exists):
+> permission-aware, RLS-scoped Q&A (never service key), answers with totals must
+> link to source rows + audit entry. See `PROJECT_SOURCE_OF_TRUTH.md` §"AI assistant".
+
 ---
 
-## 11. Known follow-ups (non-blocking, not in Phase 6)
+## 12. Known follow-ups (non-blocking)
 
 - App icons: replace placeholder SVG with PNG 192/512 maskable set
 - Service worker: currently a no-op; add offline caching later
 - GitHub Actions: `actions/checkout@v4` + Node 20 — upgrade to v5+/Node 22
 - Expense claims: `updateExpenseClaimStatus` has no submitter/owner guard — add if multi-user
-- Exchange rate cron + OCR webhook: both need the manual dashboard steps above
+- Exchange rate cron + OCR webhook: both need the manual dashboard steps above (§8)
+- Inventory: event detail could show stock reserved for that event (reverse view);
+  `recordMovement` read-modify-write relies on DB CHECK as the race backstop
 - Rename org "Firma Mea" to real business name via Settings page or direct DB update
 
 ---
 
-## 12. Approved deviations from blueprint
+## 13. Approved deviations from blueprint
 
 - npm workspaces (not pnpm)
 - MUI Material v9 (not MUI Joy — Joy is in maintenance mode)

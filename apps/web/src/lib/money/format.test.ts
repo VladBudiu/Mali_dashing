@@ -36,6 +36,19 @@ describe("formatMoney", () => {
     const result = formatMoney(250);
     expect(result).toContain("RON");
   });
+
+  it("should not throw on an invalid currency code (renders safely)", () => {
+    // These all make Intl.NumberFormat throw RangeError — formatMoney must not.
+    for (const bad of ["1$2", "R0N", "EU", "EURO", "   "]) {
+      expect(() => formatMoney(10, bad)).not.toThrow();
+    }
+  });
+
+  it("falls back to number + raw code for an unknown but well-formed code", () => {
+    const result = formatMoney(1234.5, "1$2");
+    expect(result).toContain("1$2");
+    expect(result).toMatch(/1[.,\s]?234/); // number still formatted
+  });
 });
 
 describe("roundMoney", () => {
