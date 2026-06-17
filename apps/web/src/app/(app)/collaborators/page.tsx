@@ -1,14 +1,58 @@
 import type { Metadata } from "next";
-import PlaceholderPage from "@/components/PlaceholderPage";
+import Link from "next/link";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemText from "@mui/material/ListItemText";
+import Chip from "@mui/material/Chip";
+import { resolveCurrentOrg } from "@/lib/org/membership";
+import { listCollaborators } from "@/lib/collaborators/queries";
 
 export const metadata: Metadata = { title: "Collaborators" };
 
-export default function CollaboratorsPage() {
+export default async function CollaboratorsPage() {
+  const currentOrg = await resolveCurrentOrg();
+  const collaborators = currentOrg
+    ? await listCollaborators(currentOrg.organizationId)
+    : [];
+
   return (
-    <PlaceholderPage
-      title="Collaborators"
-      subtitle="People, roles, rates, and availability."
-      phaseNote="Collaborator management arrives in Phase 3."
-    />
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3 }}>
+        <Typography variant="h5" component="h1">Collaborators</Typography>
+        <Button variant="contained" component={Link} href="/collaborators/new">
+          Add collaborator
+        </Button>
+      </Box>
+
+      {collaborators.length === 0 ? (
+        <Typography color="text.secondary">
+          No collaborators yet. Add people you work with on events.
+        </Typography>
+      ) : (
+        <List disablePadding sx={{ border: 1, borderColor: "divider", borderRadius: 1 }}>
+          {collaborators.map((collab, index) => (
+            <ListItem
+              key={collab.id}
+              disablePadding
+              divider={index < collaborators.length - 1}
+            >
+              <ListItemButton component={Link} href={`/collaborators/${collab.id}`}>
+                <ListItemText
+                  primary={collab.name}
+                  secondary={collab.specialty ?? undefined}
+                />
+                {!collab.is_active && (
+                  <Chip label="Inactive" size="small" sx={{ ml: 1 }} />
+                )}
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+      )}
+    </Box>
   );
 }
