@@ -1,25 +1,24 @@
 # New Chat Handoff
 
-> Last updated: 2026-06-17, end of Phase 2. Read this first to resume work directly.
+> Last updated: 2026-06-17, end of Phase 4. Read this first to resume work directly.
 
 ## ▶ Resume checklist (do this first, in order)
 
 1. **Confirm the Supabase MCP is loaded** this session: the `mcp__supabase__*` tools must be
-   available (ToolSearch `supabase`). If they're not, stop — the session still can't reach the DB.
+   available (ToolSearch `supabase`). If they're not, stop.
 2. **Verify isolation:** confirm the MCP/`.mcp.json` project ref is `rtnuhqjpqqdyelzlmbkq`. If not, HALT.
-3. **Git base:** Phase 2 is on branch `feature/phase-2-auth` (PR #2, open).
-   Merge PR #2 to `main` first, then `git switch main && git pull && git switch -c feature/phase-3-business`.
-4. **Env:** `apps/web/.env.local` must exist (gitignored). If it was wiped, fetch URL + anon key
-   from the MCP and recreate it — `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+3. **Git base:** Phase 4 is on branch `feature/phase-4-finance` (PR #4, open).
+   Merge PR #4 to `main` first, then `git switch main && git pull && git switch -c feature/phase-5-exchange`.
+4. **Env:** `apps/web/.env.local` must exist (gitignored). If wiped, fetch URL + anon key from MCP and recreate:
+   `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 5. **Run prechecks:** `npm run build && npm run test && npm run lint && npm audit --audit-level=moderate`.
-   All currently green (27 tests, lint clean, 0 vulns). Fix any gate before adding new code.
+   All currently green (52 tests, lint clean, 0 vulns). Fix any gate before adding new code.
 
 ## TL;DR
 
-Phase 0 (governance), Phase 1 (scaffold), and Phase 2 (auth + tenant + RLS) are **complete and green**.
-Phase 2 is on branch `feature/phase-2-auth`, pushed, in **PR #2**
-(https://github.com/VladBudiu/Mali_dashing/pull/2).
-Phase 3 (business core) is **ready to start** — no blockers.
+Phases 0–4 are **complete and green**. Phase 4 (Finance + Documents) is on branch
+`feature/phase-4-finance`, pushed, in **PR #4** (to be opened).
+Phase 5 (Exchange rates cron + OCR pipeline) is **ready to start**.
 
 ## Repo facts
 
@@ -28,7 +27,7 @@ Phase 3 (business core) is **ready to start** — no blockers.
 - Apps/packages:
   - `apps/web` — Next.js 16 App Router, MUI Material v9, `@mali/web`
   - `packages/config` (`@mali/config`), `packages/types` (`@mali/types`), `packages/utils` (`@mali/utils`)
-- Ground truth: `PROJECT_SOURCE_OF_TRUTH.md` (has an updated implementation note at the top).
+- Ground truth: `PROJECT_SOURCE_OF_TRUTH.md`.
 - Rules: `AGENTS.md` → `DEV_RULES.md` → `docs/`. Follow the load order.
 
 ## ⛔ Unbreakable rule
@@ -41,106 +40,104 @@ Never connect to any other project ref.
 ```bash
 npm install
 npm run build
-npm run test     # 27 passing (5 files)
+npm run test     # 52 passing (8 files)
 npm run lint     # clean
 npm audit --audit-level=moderate   # 0 vulnerabilities
 ```
 
-## What exists after Phase 2
+## What exists after Phase 4
 
-### Auth layer (`apps/web/src/`)
+### Key MUI v9 rules (learned from build failures — do not regress)
 
-- `proxy.ts` — Next 16 route guard (replaces middleware.ts). Unauthenticated → `/login?redirectTo=...`. Authenticated on `/login` → `/dashboard`. Static asset matcher.
-- `lib/auth/constants.ts` — Route constants: LOGIN_PATH, DEFAULT_AUTHENTICATED_PATH, AUTH_CALLBACK_PATH, etc.
-- `lib/auth/routing.ts` — Pure: `isPublicPath(pathname)`, `safeRedirectPath(value)` (open-redirect protection).
-- `lib/auth/session.ts` — `getCurrentUser()` (server, always `getUser()` not `getSession()`).
-- `lib/auth/actions.ts` — Server actions: `signInWithEmail` (Zod OTP), `signOut`.
-- `lib/supabase/proxy.ts` — `updateSession()` for cookie refresh via `@supabase/ssr`.
-- `app/auth/callback/route.ts` — Magic-link landing; exchanges code, safe-redirects.
-- `components/auth/LoginForm.tsx` — `useActionState`-based OTP form.
-- `components/auth/SignOutButton.tsx` — Progressive-enhancement sign-out.
+- `fontWeight` must be in `sx={{ fontWeight: N }}`, not as a direct prop on Typography
+- `inputProps` is removed — use `slotProps={{ htmlInput: { maxLength, min, step } }}`
+- `InputLabelProps` is removed — use `slotProps={{ inputLabel: { shrink: true } }}`
+- Import next/link as `NextLink`, MUI Link as `MuiLink`; use `component={NextLink}` on MUI components
+- `Box sx={{ display: "flex" }}` instead of `Stack` where TS inference causes issues
 
-### Org / tenant layer
+### Key Zod v4 rules
 
-- `lib/org/select.ts` — Pure: `selectActiveOrg(memberships, preferredOrgId)`.
-- `lib/org/membership.ts` — `listUserOrganizations()`, `resolveCurrentOrg()`.
-- `lib/org/actions.ts` — `setCurrentOrg` (httpOnly cookie, 1yr, revalidates layout).
-- `components/org/OrgSwitcher.tsx` — Single-org label or multi-org Select.
+- `.issues` not `.errors` on `ZodError`
+- `z.coerce.number()` for form numeric fields
+- `z.enum([...] as const)` for string unions
 
-### Updated pages / layout
+### Finance layer (`apps/web/src/lib/finance/`)
 
-- `app/(app)/layout.tsx` — Auth gate: redirects to `/login` if no user. Passes `userEmail` + `orgName` to AppShell.
-- `app/(app)/settings/page.tsx` — Account section (email + sign-out) + Organization section (OrgSwitcher).
-- `app/(auth)/login/page.tsx` — Awaits `searchParams` (Next 16), shows error/redirectTo to LoginForm.
-- `components/layout/AppShell.tsx` — Toolbar: org Chip, email, SignOutButton. Uses `Box` not `Stack` (MUI v9 TS fix).
+- `queries.ts` — `listTransactions` (with `expense_categories` + `events` join), `getCashSummary`, `listExpenseCategories`, `listExpenseClaims`. `server-only` guard.
+- `actions.ts` — `createTransaction`, `deleteTransaction`, `createExpenseClaim`, `updateExpenseClaimStatus`.
 
-### Database / migrations
+### Documents layer (`apps/web/src/lib/documents/`)
 
-- `supabase/migrations/0001_init_org_auth.sql` — Applied. `organizations`, `organization_users`, `is_org_member()` SECURITY DEFINER, baseline RLS.
-- `supabase/migrations/0002_phase2_auth_rls.sql` — Applied. `has_org_role`, `is_org_member_path` helpers; owner policies; private `documents` storage bucket; 4 storage object policies.
-- `supabase/migrations/0003_revoke_anon_execute.sql` — Applied. Explicit `anon` execute revoke on all SECURITY DEFINER functions.
-- `packages/types/src/database.ts` — Full generated `Database` type from live schema.
+- `queries.ts` — `listDocuments`, `getDocument`, `getDocumentExtractions`, `getDocumentFields`. `server-only` guard.
+- `actions.ts` — `uploadDocument` (crypto.randomUUID pre-gen, storage upload, DB insert, cleanup on fail), `deleteDocument`, `updateDocumentType`.
 
-### Tests
+### Money utils (`apps/web/src/lib/money/format.ts`)
 
-- `lib/auth/routing.test.ts` — `isPublicPath`, `safeRedirectPath` (open-redirect vectors).
-- `lib/org/select.test.ts` — `selectActiveOrg` (empty, preferred, fallback, not-a-member).
+- `formatMoney(amount, currency?)` — Romanian locale (`ro-RO`), defaults to RON
+- `roundMoney(value)` — `Math.round(value * 100) / 100`
+
+### Database migrations applied
+
+| File | Tables |
+|------|--------|
+| `0001_init_org_auth.sql` | `organizations`, `organization_users`, `is_org_member()` |
+| `0002_phase2_auth_rls.sql` | RLS helpers, storage bucket `documents` + 4 policies |
+| `0003_revoke_anon_execute.sql` | Revoke anon execute on SECURITY DEFINER functions |
+| `0004_clients.sql` | `clients` |
+| `0005_collaborators.sql` | `collaborators` |
+| `0006_events.sql` | `events`, `event_assignments` |
+| `0007_quotes.sql` | `quotes`, `quote_lines` |
+| `0008_finance.sql` | `expense_categories`, `exchange_rates`, `financial_transactions`, `expense_claims` |
+| `0009_documents.sql` | `documents`, `document_extractions`, `document_fields` |
+
+### Routes live
+
+```
+/clients          /clients/[id]
+/collaborators    /collaborators/[id]
+/events           /events/[id]
+/finance          /finance/new
+/documents        /documents/upload    /documents/[id]
+/dashboard        /settings
+```
 
 ### Security posture
 
-- Deny-by-default on all app routes (proxy gate)
-- RLS deny-by-default on `organizations`, `organization_users`, storage
-- `anon` execute revoked on all SECURITY DEFINER helpers
-- Open-redirect blocked (double-slash, backslash, external, no-slash)
-- httpOnly org cookie; magic-link only (no password surface)
-- 3 Supabase security advisor warnings accepted as intentional (authenticated callers of own-membership helpers)
+- Deny-by-default RLS on all tables; `is_org_member` for read/write, `has_org_role('owner')` for delete
+- `exchange_rates`: authenticated SELECT only — INSERT/UPDATE/DELETE reserved for service role
+- `expense_claims.submitted_by` ON DELETE RESTRICT (no orphaned claims)
+- Storage: `is_org_member_path` policy; upload path `{org_id}/{doc_id}`
+- Service role key: server-side only, never in NEXT_PUBLIC_* or client code
+- `apps/web/.env.local` gitignored, must never be committed
 
-## Phase 3 task breakdown — business core
+## Phase 5 task breakdown — Exchange rates + OCR pipeline
 
-Branch: `feature/phase-3-business`
+Branch: `feature/phase-5-exchange`
 
-### 3.1 — Clients
+### 5.1 — Exchange rate cron (Supabase Edge Function)
 
-Migration: `0004_clients.sql`
-- `clients` table: `id uuid PK`, `org_id uuid FK organizations`, `name text`, `phone text`, `email text`, `notes text`, `created_at`, `updated_at`.
-- RLS: members can select/insert own org's clients; owners can delete.
-- Types: regenerate `Database` type after migration.
+- Edge Function `exchange-rate-sync`: calls BNR RSS (`https://www.bnr.ro/nbrfxrates.xml`) or ECB API
+- Parses XML, upserts `exchange_rates` with service role key
+- Schedule via `pg_cron` or Supabase Dashboard cron job — daily at ~09:00 EET
+- Update `financial_transactions` to auto-compute `amount_ron` when exchange rate is available
+- Test: mock fetch, verify upsert logic
 
-Routes + UI:
-- `/clients` — server component, list with search/filter.
-- `/clients/[id]` — client detail + edit form.
-- Server actions: `createClient`, `updateClient`, `archiveClient`.
+### 5.2 — OCR pipeline (Azure Document Intelligence)
 
-### 3.2 — Collaborators
+- Edge Function `ocr-trigger`: triggered by storage insert event on `documents` bucket
+- Updates `documents.ocr_status = 'processing'`
+- Calls Azure Document Intelligence prebuilt-read or prebuilt-invoice model
+- Inserts `document_extractions` + `document_fields` rows
+- Updates `documents.ocr_status = 'done'` (or `'failed'` on error)
+- Environment secrets: `AZURE_DI_ENDPOINT`, `AZURE_DI_KEY`
 
-Migration: `0005_collaborators.sql`
-- `collaborators` table: `id`, `org_id`, `name`, `phone`, `email`, `specialty text`, `rate_per_day numeric`, `notes`, timestamps.
-- RLS: owner/partner manage; collaborator role can read own entry.
+### 5.3 — OCR status polling UI
 
-Routes + UI: `/collaborators` list + `/collaborators/[id]` detail.
-Server actions: `createCollaborator`, `updateCollaborator`.
+- `/documents/[id]` already shows extraction fields — add auto-refresh when `ocr_status === 'processing'`
+- Use React `useEffect` + polling (or Supabase realtime subscription) to refresh every 5s until done/failed
+- Show extraction confidence scores from `document_fields.confidence`
 
-### 3.3 — Events
-
-Migration: `0006_events.sql`
-- `events` table: `id`, `org_id`, `client_id FK clients`, `name`, `event_date date`, `location text`, `status text CHECK(...)`, `notes`, timestamps.
-- `event_collaborators` junction: `event_id`, `collaborator_id`, `role text`, `fee numeric`.
-- RLS: org-scoped; collaborators see events they are assigned to.
-
-Routes + UI: `/events` list (calendar or table), `/events/[id]` detail + collaborator assignment.
-Server actions: `createEvent`, `updateEvent`, `assignCollaborator`.
-
-### 3.4 — Quotes
-
-Migration: `0007_quotes.sql`
-- `quotes` table: `id`, `org_id`, `event_id FK events`, `status text`, `total_amount numeric`, `created_at`, `sent_at`, `accepted_at`.
-- `quote_items`: `id`, `quote_id`, `description`, `quantity numeric`, `unit_price numeric`, `amount numeric`.
-- RLS: org-scoped; client role can read quotes for their events.
-
-Routes + UI: `/events/[id]/quotes` — quote builder; PDF preview (later phase).
-Server actions: `createQuote`, `addQuoteItem`, `updateQuoteStatus`.
-
-### Gates before Phase 3 PR
+### Gates before Phase 5 PR
 
 ```bash
 npm run build   # no TS errors
@@ -151,14 +148,16 @@ npm audit --audit-level=moderate   # 0 vulns
 
 ## Known follow-ups (non-blocking)
 
-- Replace placeholder SVG app icons with a proper PNG set (192/512, maskable) before production PWA install.
-- Service worker is a no-op; add offline caching strategy in a later phase.
-- GitHub Actions uses `actions/checkout@v4` + `actions/setup-node@v4` (Node 20) — should upgrade to v5+ (non-blocking, noted in CI output).
-- PR #2 should be reviewed/merged to `main` before Phase 3 starts.
+- Replace placeholder SVG app icons with proper PNG set (192/512, maskable) before production PWA install
+- Service worker is a no-op; add offline caching in a later phase
+- GitHub Actions uses `actions/checkout@v4` + Node 20 — upgrade to v5+/Node 22 (non-blocking)
+- Expense claim `updateExpenseClaimStatus` currently doesn't enforce that only the submitter or owner can update — add that check if multi-user orgs become a priority
+- `exchange_rates` INSERT/UPDATE/DELETE currently blocked for all non-service-role callers — Phase 5 cron will handle population
 
 ## Deviations from blueprint (approved, recorded)
 
-- npm workspaces instead of pnpm.
-- MUI Material v9 instead of MUI Joy (SSR via hand-rolled Emotion cache registry).
-- Next 16 `proxy.ts` instead of `middleware.ts` (breaking rename in Next 16).
-- See `docs/architecture/adr/2026-06-17-monorepo-and-mui-material.md`.
+- npm workspaces instead of pnpm
+- MUI Material v9 instead of MUI Joy (SSR via hand-rolled Emotion cache registry)
+- Next 16 `proxy.ts` instead of `middleware.ts` (breaking rename in Next 16)
+- Exchange rate fetch deferred to Phase 5 (Phase 4 has manual rate input on transaction form)
+- See `docs/architecture/adr/2026-06-17-monorepo-and-mui-material.md`
