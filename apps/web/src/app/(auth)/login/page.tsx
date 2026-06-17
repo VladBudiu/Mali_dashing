@@ -1,17 +1,28 @@
 import type { Metadata } from "next";
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
-import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { APP_NAME } from "@mali/config";
+import LoginForm from "@/components/auth/LoginForm";
 
 export const metadata: Metadata = {
   title: "Sign in",
 };
 
-export default function LoginPage() {
+function firstParam(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const redirectTo = firstParam(params.redirectTo);
+  const initialError = firstParam(params.error);
+
   return (
     <Box
       sx={{
@@ -31,13 +42,7 @@ export default function LoginPage() {
               Sign in to your workspace
             </Typography>
           </Box>
-          <TextField label="Email" type="email" fullWidth disabled />
-          <Button variant="contained" size="large" disabled fullWidth>
-            Continue
-          </Button>
-          <Typography variant="caption" color="text.secondary">
-            Authentication is wired up in Phase 2.
-          </Typography>
+          <LoginForm redirectTo={redirectTo} initialError={initialError} />
         </Stack>
       </Paper>
     </Box>
