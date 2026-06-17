@@ -1,0 +1,26 @@
+-- Phase 5: exchange-rate-sync Edge Function cron schedule
+--
+-- The exchange-rate-sync Edge Function is deployed separately (see supabase/functions/).
+-- To schedule it daily, use ONE of these approaches:
+--
+-- Option A — Supabase Dashboard (recommended for Supabase Free/Pro):
+--   Database → Cron Jobs → New Job
+--   Name:     bnr-exchange-rate-sync
+--   Schedule: 35 14 * * 1-5   (weekdays 14:35 UTC = 16:35 EET)
+--   Command:  SELECT net.http_post(
+--               url := '<SUPABASE_URL>/functions/v1/exchange-rate-sync',
+--               headers := '{"Authorization":"Bearer <SERVICE_ROLE_KEY>","Content-Type":"application/json"}'::jsonb,
+--               body := '{}'::jsonb
+--             );
+--
+-- Option B — pg_cron extension (if enabled on your plan):
+--   Requires: create extension if not exists pg_cron with schema extensions;
+--   Requires: pg_net extension for HTTP calls from within Postgres.
+--
+-- The OCR trigger Edge Function (ocr-trigger) is invoked via a Supabase Storage Webhook:
+--   Dashboard → Storage → Policies → Webhooks → New Webhook
+--   Table: storage.objects  Event: INSERT  URL: <SUPABASE_URL>/functions/v1/ocr-trigger
+--   Add header: Authorization: Bearer <SERVICE_ROLE_KEY>
+
+-- No SQL schema changes needed for Phase 5.
+select 1; -- placeholder so this file is a valid migration

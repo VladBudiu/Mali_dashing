@@ -19,6 +19,7 @@ import {
 } from "@/lib/documents/queries";
 import { deleteDocument } from "@/lib/documents/actions";
 import { NavLink } from "@/components/ui/NavLink";
+import { OcrStatusPoller } from "@/components/documents/OcrStatusPoller";
 
 export const metadata: Metadata = { title: "Document" };
 
@@ -194,6 +195,15 @@ export default async function DocumentDetailPage({ params }: PageProps) {
             </Table>
           </Box>
         </Box>
+      )}
+
+      {doc.ocr_status === "processing" && (
+        <>
+          <Typography color="text.secondary" variant="body2">
+            OCR in progress — this page refreshes automatically every 5 seconds.
+          </Typography>
+          <OcrStatusPoller />
+        </>
       )}
 
       {doc.ocr_status === "pending" && (
