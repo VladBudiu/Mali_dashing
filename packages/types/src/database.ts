@@ -20,6 +20,314 @@ export type Database = {
   }
   public: {
     Tables: {
+      client_contacts: {
+        Row: {
+          client_id: string
+          created_at: string
+          email: string | null
+          id: string
+          is_primary: boolean
+          name: string
+          phone: string | null
+          role: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_primary?: boolean
+          name: string
+          phone?: string | null
+          role?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_primary?: boolean
+          name?: string
+          phone?: string | null
+          role?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_contacts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          organization_id: string
+          phone: string | null
+          tax_id: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          organization_id: string
+          phone?: string | null
+          tax_id?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          phone?: string | null
+          tax_id?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collaborator_rates: {
+        Row: {
+          collaborator_id: string
+          created_at: string
+          currency: string
+          id: string
+          notes: string | null
+          pricing_mode: string
+          rate: number
+          valid_from: string
+          valid_until: string | null
+        }
+        Insert: {
+          collaborator_id: string
+          created_at?: string
+          currency?: string
+          id?: string
+          notes?: string | null
+          pricing_mode?: string
+          rate: number
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Update: {
+          collaborator_id?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          notes?: string | null
+          pricing_mode?: string
+          rate?: number
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collaborator_rates_collaborator_id_fkey"
+            columns: ["collaborator_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collaborators: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          organization_id: string
+          phone: string | null
+          specialty: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          organization_id: string
+          phone?: string | null
+          specialty?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          phone?: string | null
+          specialty?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collaborators_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_assignments: {
+        Row: {
+          collaborator_id: string
+          created_at: string
+          event_id: string
+          fee: number | null
+          fee_currency: string
+          id: string
+          notes: string | null
+          role: string | null
+        }
+        Insert: {
+          collaborator_id: string
+          created_at?: string
+          event_id: string
+          fee?: number | null
+          fee_currency?: string
+          id?: string
+          notes?: string | null
+          role?: string | null
+        }
+        Update: {
+          collaborator_id?: string
+          created_at?: string
+          event_id?: string
+          fee?: number | null
+          fee_currency?: string
+          id?: string
+          notes?: string | null
+          role?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_assignments_collaborator_id_fkey"
+            columns: ["collaborator_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_assignments_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          city: string | null
+          client_id: string | null
+          country_code: string
+          created_at: string
+          created_by: string | null
+          estimated_cost_total: number | null
+          estimated_revenue_total: number | null
+          event_date: string
+          final_cost_total: number | null
+          final_revenue_total: number | null
+          id: string
+          notes: string | null
+          organization_id: string
+          pricing_currency: string
+          status: string
+          title: string
+          updated_at: string
+          venue_address: string | null
+          venue_name: string | null
+        }
+        Insert: {
+          city?: string | null
+          client_id?: string | null
+          country_code?: string
+          created_at?: string
+          created_by?: string | null
+          estimated_cost_total?: number | null
+          estimated_revenue_total?: number | null
+          event_date: string
+          final_cost_total?: number | null
+          final_revenue_total?: number | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          pricing_currency?: string
+          status?: string
+          title: string
+          updated_at?: string
+          venue_address?: string | null
+          venue_name?: string | null
+        }
+        Update: {
+          city?: string | null
+          client_id?: string | null
+          country_code?: string
+          created_at?: string
+          created_by?: string | null
+          estimated_cost_total?: number | null
+          estimated_revenue_total?: number | null
+          event_date?: string
+          final_cost_total?: number | null
+          final_revenue_total?: number | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          pricing_currency?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          venue_address?: string | null
+          venue_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_users: {
         Row: {
           created_at: string
@@ -85,12 +393,148 @@ export type Database = {
         }
         Relationships: []
       }
+      quote_lines: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          line_total_net: number | null
+          quantity: number
+          quote_id: string
+          sort_order: number
+          unit_cost_net: number | null
+          unit_price_net: number
+          updated_at: string
+          vat_rate: number
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          line_total_net?: number | null
+          quantity?: number
+          quote_id: string
+          sort_order?: number
+          unit_cost_net?: number | null
+          unit_price_net: number
+          updated_at?: string
+          vat_rate?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          line_total_net?: number | null
+          quantity?: number
+          quote_id?: string
+          sort_order?: number
+          unit_cost_net?: number | null
+          unit_price_net?: number
+          updated_at?: string
+          vat_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_lines_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quotes: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          currency: string
+          discount_net: number
+          discount_pct: number
+          event_id: string
+          fixed_discount_net: number
+          id: string
+          net_after_discount: number
+          notes: string | null
+          organization_id: string
+          sent_at: string | null
+          status: string
+          subtotal_net: number
+          total_gross: number
+          updated_at: string
+          vat_amount: number
+          vat_rate: number
+          version_no: number
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          currency?: string
+          discount_net?: number
+          discount_pct?: number
+          event_id: string
+          fixed_discount_net?: number
+          id?: string
+          net_after_discount?: number
+          notes?: string | null
+          organization_id: string
+          sent_at?: string | null
+          status?: string
+          subtotal_net?: number
+          total_gross?: number
+          updated_at?: string
+          vat_amount?: number
+          vat_rate?: number
+          version_no?: number
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          currency?: string
+          discount_net?: number
+          discount_pct?: number
+          event_id?: string
+          fixed_discount_net?: number
+          id?: string
+          net_after_discount?: number
+          notes?: string | null
+          organization_id?: string
+          sent_at?: string | null
+          status?: string
+          subtotal_net?: number
+          total_gross?: number
+          updated_at?: string
+          vat_amount?: number
+          vat_rate?: number
+          version_no?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      has_org_role: {
+        Args: { target_org: string; target_role: string }
+        Returns: boolean
+      }
       is_org_member: { Args: { target_org: string }; Returns: boolean }
+      is_org_member_path: { Args: { path_org: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
