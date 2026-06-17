@@ -9,6 +9,11 @@ const SECURITY_HEADERS = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   transpilePackages: ["@mali/config", "@mali/types", "@mali/utils"],
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "10mb",
+    },
+  },
   async headers() {
     return [
       {

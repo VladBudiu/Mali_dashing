@@ -1,9 +1,3 @@
-/**
- * Generated Supabase database types for project rtnuhqjpqqdyelzlmbkq.
- * Produced by `supabase gen types typescript` (via the Supabase MCP).
- * Regenerate after every applied migration; do not edit by hand.
- */
-
 export type Json =
   | string
   | number
@@ -199,6 +193,155 @@ export type Database = {
           },
         ]
       }
+      document_extractions: {
+        Row: {
+          confidence: number | null
+          created_at: string
+          document_id: string
+          engine: string
+          id: string
+          raw_json: Json | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string
+          document_id: string
+          engine: string
+          id?: string
+          raw_json?: Json | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string
+          document_id?: string
+          engine?: string
+          id?: string
+          raw_json?: Json | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_extractions_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_fields: {
+        Row: {
+          confidence: number | null
+          created_at: string
+          extraction_id: string
+          field_name: string
+          field_value: string | null
+          id: string
+          is_validated: boolean
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string
+          extraction_id: string
+          field_name: string
+          field_value?: string | null
+          id?: string
+          is_validated?: boolean
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string
+          extraction_id?: string
+          field_name?: string
+          field_value?: string | null
+          id?: string
+          is_validated?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_fields_extraction_id_fkey"
+            columns: ["extraction_id"]
+            isOneToOne: false
+            referencedRelation: "document_extractions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          created_at: string
+          doc_type: string
+          event_id: string | null
+          expense_claim_id: string | null
+          file_name: string
+          file_path: string
+          file_size_bytes: number | null
+          id: string
+          mime_type: string
+          ocr_status: string
+          organization_id: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          doc_type?: string
+          event_id?: string | null
+          expense_claim_id?: string | null
+          file_name: string
+          file_path: string
+          file_size_bytes?: number | null
+          id?: string
+          mime_type: string
+          ocr_status?: string
+          organization_id: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          doc_type?: string
+          event_id?: string | null
+          expense_claim_id?: string | null
+          file_name?: string
+          file_path?: string
+          file_size_bytes?: number | null
+          id?: string
+          mime_type?: string
+          ocr_status?: string
+          organization_id?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_expense_claim_id_fkey"
+            columns: ["expense_claim_id"]
+            isOneToOne: false
+            referencedRelation: "expense_claims"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_assignments: {
         Row: {
           collaborator_id: string
@@ -321,6 +464,260 @@ export type Database = {
           },
           {
             foreignKeyName: "events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exchange_rates: {
+        Row: {
+          base_currency: string
+          fetched_at: string
+          id: number
+          inverse_rate: number | null
+          is_final: boolean
+          notes: string | null
+          published_at: string | null
+          quote_currency: string
+          rate: number
+          rate_date: string
+          source: string
+        }
+        Insert: {
+          base_currency: string
+          fetched_at?: string
+          id?: number
+          inverse_rate?: number | null
+          is_final?: boolean
+          notes?: string | null
+          published_at?: string | null
+          quote_currency: string
+          rate: number
+          rate_date: string
+          source: string
+        }
+        Update: {
+          base_currency?: string
+          fetched_at?: string
+          id?: number
+          inverse_rate?: number | null
+          is_final?: boolean
+          notes?: string | null
+          published_at?: string | null
+          quote_currency?: string
+          rate?: number
+          rate_date?: string
+          source?: string
+        }
+        Relationships: []
+      }
+      expense_categories: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          name: string
+          organization_id: string
+          parent_id: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          name: string
+          organization_id: string
+          parent_id?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          name?: string
+          organization_id?: string
+          parent_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_categories_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expense_claims: {
+        Row: {
+          amount: number
+          amount_ron: number | null
+          category_id: string | null
+          created_at: string
+          currency: string
+          description: string
+          event_id: string | null
+          exchange_rate: number | null
+          id: string
+          notes: string | null
+          organization_id: string
+          receipt_url: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          submitted_at: string
+          submitted_by: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          amount_ron?: number | null
+          category_id?: string | null
+          created_at?: string
+          currency?: string
+          description: string
+          event_id?: string | null
+          exchange_rate?: number | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          receipt_url?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          submitted_at?: string
+          submitted_by: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          amount_ron?: number | null
+          category_id?: string | null
+          created_at?: string
+          currency?: string
+          description?: string
+          event_id?: string | null
+          exchange_rate?: number | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          receipt_url?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          submitted_at?: string
+          submitted_by?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_claims_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_claims_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_claims_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financial_transactions: {
+        Row: {
+          amount: number
+          amount_ron: number | null
+          category_id: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          description: string
+          event_id: string | null
+          exchange_rate: number | null
+          exchange_rate_date: string | null
+          exchange_rate_source: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          reference_no: string | null
+          transaction_date: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          amount_ron?: number | null
+          category_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description: string
+          event_id?: string | null
+          exchange_rate?: number | null
+          exchange_rate_date?: string | null
+          exchange_rate_source?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          reference_no?: string | null
+          transaction_date: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          amount_ron?: number | null
+          category_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string
+          event_id?: string | null
+          exchange_rate?: number | null
+          exchange_rate_date?: string | null
+          exchange_rate_source?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          reference_no?: string | null
+          transaction_date?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_transactions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_transactions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_transactions_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
