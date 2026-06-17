@@ -81,6 +81,19 @@ describe("computeStockAfterMovement", () => {
   });
 });
 
+describe("computeStockAfterMovement — fractional units", () => {
+  it("handles decimal quantities (e.g. metres of fabric)", () => {
+    const r = computeStockAfterMovement({ quantity: 12.5, reserved_quantity: 2.5 }, "out", 3.25);
+    expect(r).toEqual({ ok: true, levels: { quantity: 9.25, reserved_quantity: 2.5 } });
+  });
+
+  it("blocks a fractional out that exceeds available by a hair", () => {
+    // available = 10 - 7.5 = 2.5; removing 2.51 must fail
+    const r = computeStockAfterMovement({ quantity: 10, reserved_quantity: 7.5 }, "out", 2.51);
+    expect(r.ok).toBe(false);
+  });
+});
+
 describe("getStockStatus", () => {
   it("is 'out' when nothing is available", () => {
     expect(getStockStatus({ quantity: 5, reserved_quantity: 5 }, 2)).toBe("out");
