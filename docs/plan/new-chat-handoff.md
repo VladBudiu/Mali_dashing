@@ -1,6 +1,6 @@
 # New Chat Handoff
 
-> Last updated: 2026-06-18, end of Phase 6. Read this before writing any code.
+> Last updated: 2026-06-18, end of Phase 7. Read this before writing any code.
 
 ---
 
@@ -21,17 +21,17 @@ Never use another ref. Cannot be overridden.
 
 1. **Supabase MCP**: confirm `mcp__supabase__*` tools are available. If not, stop.
 2. **Isolation check**: confirm `.mcp.json` project ref = `rtnuhqjpqqdyelzlmbkq`.
-3. **Branch**: `main` is current. Create `feature/phase-7-pricing` before starting work.
+3. **Branch**: `main` is current. Create `feature/phase-8-assistant` before starting work.
    ```bash
-   git switch main && git pull && git switch -c feature/phase-7-pricing
+   git switch main && git pull && git switch -c feature/phase-8-assistant
    ```
-   (Phase 6 `feature/phase-6-inventory` is in PR — merge it first if still open.)
+   (Phase 7 `feature/phase-7-pricing` is in PR — merge it first if still open.)
 4. **Env**: `apps/web/.env.local` must exist (gitignored — never commit it).
    If missing, fetch from MCP and recreate with two keys:
    `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 5. **Gate**: all must be green before adding code.
    ```bash
-   npx vitest run --config vitest.config.ts   # must show 78 tests passed
+   npx vitest run --config vitest.config.ts   # must show 95 tests passed
    npm run build                               # must show 0 errors
    npm run lint                                # must be clean
    npm audit --audit-level=moderate           # must show 0 vulnerabilities
@@ -115,6 +115,8 @@ to prevent static prerender failures from the above wrappers.
 | `0009_documents.sql` | `documents`, `document_extractions`, `document_fields` |
 | `0010_exchange_rate_cron.sql` | doc-only (cron setup notes), no schema changes |
 | `0011_inventory.sql` | `inventory_items`, `inventory_movements` (stock + audit trail) |
+| `0012_rls_initplan_fix.sql` | rewrites expense_claims UPDATE policy with `(select auth.uid())` (perf) |
+| _Phase 7 (pricing) added no migration — the calculator is client-side/ephemeral._ | |
 
 ---
 
@@ -133,6 +135,7 @@ apps/web/src/
 │   ├── documents/    queries.ts, actions.ts
 │   ├── fx/           bnr.ts, bnr.test.ts        ← BNR XML parser
 │   ├── inventory/    stock.ts (+test), queries.ts, actions.ts
+│   ├── pricing/      pricing.ts (+test)         ← cost→price/margin calculator
 │   └── money/        format.ts                  ← formatMoney, roundMoney
 ├── components/
 │   ├── ui/           LinkButton, NavLink, LinkRow, LinkListItemButton
@@ -140,6 +143,8 @@ apps/web/src/
 │   ├── auth/         SignOutButton, OtpForm, ...
 │   ├── org/          OrgSwitcher
 │   ├── finance/      TransactionForm
+│   ├── inventory/    InventoryItemForm, MovementForm
+│   ├── pricing/      PricingCalculator
 │   └── documents/    OcrStatusPoller
 └── app/
     ├── (auth)/login/    magic-link login page
@@ -214,52 +219,56 @@ Shipped on `feature/phase-6-inventory`. For reference:
 
 ---
 
-## 11. Phase 7 — Pricing calculator (NEXT)
+## 11. Phase 7 — Pricing calculator (DONE)
 
-Branch to create: `feature/phase-7-pricing`. Placeholder route `/pricing` already
-exists (`PlaceholderPage`) and a nav entry is present. Build on the existing
-quote engine — do NOT duplicate money math; reuse `lib/quotes/totals.ts`
-(`calculateQuoteTotals`) and `lib/money/format.ts`.
+Shipped on `feature/phase-7-pricing`. Ephemeral (no migration). For reference:
+- `lib/pricing/pricing.ts` — pure `computePricingLine` / `computePricing`
+  (markup → price, margin, discount clamp, VAT, deposit). 10 unit tests. Reuse
+  this if the quote hand-off is built.
+- `components/pricing/PricingCalculator.tsx` — client calculator; replaced the
+  `/pricing` placeholder. Nav entry already existed.
+- Not done (intentional): saving an estimate as a quote on an event.
 
-Goal: a standalone pricing/margin calculator so the owner can build a costed
-estimate (cost lines + markup → sell price, margin, deposit) before turning it
-into a real quote on an event.
+---
 
-### 11.1 Decide: DB-backed vs. ephemeral
-Two viable scopes — pick based on whether saved templates are wanted:
-- **Ephemeral (smaller):** a client-side calculator page, no migration. Computes
-  margin/markup/deposit live. Optional "Create quote from this" hand-off.
-- **DB-backed (larger):** migration `0012_pricing_templates.sql` with
-  `pricing_templates` + `pricing_template_lines` (org-scoped, same RLS pattern as
-  events/quotes) so reusable price lists persist.
-Recommend starting **ephemeral** unless the user asks to save templates.
+## 12. Phase 8 — AI assistant (NEXT)
 
-### 11.2 Pure logic (`apps/web/src/lib/pricing/`)
-- `pricing.ts` — `computeLine({ cost, markupPct })`, `computeMargin({ cost, price })`,
-  roll-up totals, deposit (% of gross). Keep it pure and **unit-test it** (this is
-  the testable core — mirror `stock.ts` / `totals.ts` style).
-- Reuse `roundMoney` from `lib/money/format.ts`; never re-implement rounding.
+Branch to create: `feature/phase-8-assistant`. Placeholder route `/assistant`
+exists and a nav entry is present.
 
-### 11.3 UI
-- Replace `/pricing` placeholder with the calculator (client component with line
-  rows, markup, VAT, deposit; live totals).
-- Optional: "Create quote" that pre-fills a new quote on a chosen event.
+Goal: permission-aware Q&A over the org's own data (events, finance, inventory,
+clients). See `PROJECT_SOURCE_OF_TRUTH.md` §"AI assistant" and §"OCR, AI și
+securitate" for the canonical requirements.
 
-### 11.4 Gate before PR
+### Non-negotiable security rules (from the blueprint)
+- The assistant answers **only within the user's RLS scope** — it must run
+  queries through the user's session client (anon key + RLS), **never the service
+  role key**. No cross-org data, ever.
+- Any answer containing totals/profit/tax/balance must **link to the source rows**
+  and write an **audit entry** (`ai_audit_logs`).
+- Prompt redaction for sensitive data; minimal necessary processing.
+
+### Suggested scope (confirm with user first)
+- Model: use the latest Claude model (see CLAUDE.md env — `claude-opus-4-8` or
+  current default). API key server-side only, never `NEXT_PUBLIC_*`.
+- Likely needs tables `ai_sessions`, `ai_audit_logs` (migration `0013_ai.sql`,
+  org-scoped RLS like everything else).
+- Start read-only: natural-language question → structured query over a **whitelist**
+  of safe aggregations, rendered with source links. Do NOT let the model run
+  arbitrary SQL with elevated rights.
+- Keep any pure request/response shaping in a `lib/assistant/` module and unit-test it.
+
+### Gate before PR
 ```bash
-npx vitest run --config vitest.config.ts   # all pass (currently 78)
+npx vitest run --config vitest.config.ts   # all pass (currently 95)
 npm run build                               # no TS errors
 npm run lint                                # clean
 npm audit --audit-level=moderate           # 0 vulns
 ```
 
-> Phase 8 after this is the **AI assistant** (`/assistant` placeholder exists):
-> permission-aware, RLS-scoped Q&A (never service key), answers with totals must
-> link to source rows + audit entry. See `PROJECT_SOURCE_OF_TRUTH.md` §"AI assistant".
-
 ---
 
-## 12. Known follow-ups (non-blocking)
+## 13. Known follow-ups (non-blocking)
 
 - App icons: replace placeholder SVG with PNG 192/512 maskable set
 - Service worker: currently a no-op; add offline caching later
@@ -268,11 +277,12 @@ npm audit --audit-level=moderate           # 0 vulns
 - Exchange rate cron + OCR webhook: both need the manual dashboard steps above (§8)
 - Inventory: event detail could show stock reserved for that event (reverse view);
   `recordMovement` read-modify-write relies on DB CHECK as the race backstop
+- Pricing: add "Create quote from estimate" hand-off (pre-fill a quote on an event)
 - Rename org "Firma Mea" to real business name via Settings page or direct DB update
 
 ---
 
-## 13. Approved deviations from blueprint
+## 14. Approved deviations from blueprint
 
 - npm workspaces (not pnpm)
 - MUI Material v9 (not MUI Joy — Joy is in maintenance mode)
