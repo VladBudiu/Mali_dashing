@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
-import NextLink from "next/link";
 import Box from "@mui/material/Box";
-import MuiLink from "@mui/material/Link";
-import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Chip from "@mui/material/Chip";
@@ -20,6 +17,8 @@ import {
 } from "@/lib/finance/queries";
 import { formatMoney } from "@/lib/money/format";
 import { deleteTransaction, updateExpenseClaimStatus } from "@/lib/finance/actions";
+import { LinkButton } from "@/components/ui/LinkButton";
+import { NavLink } from "@/components/ui/NavLink";
 
 export const metadata: Metadata = { title: "Finance" };
 
@@ -51,14 +50,9 @@ export default async function FinancePage() {
         <Typography variant="h5" sx={{ fontWeight: 700, flex: 1 }}>
           Finance
         </Typography>
-        <Button
-          component={NextLink}
-          href="/finance/new"
-          variant="contained"
-          size="small"
-        >
+        <LinkButton href="/finance/new" variant="contained" size="small">
           Add transaction
-        </Button>
+        </LinkButton>
       </Box>
 
       {/* Cash summary */}
@@ -109,7 +103,7 @@ export default async function FinancePage() {
         {transactions.length === 0 ? (
           <Typography color="text.secondary">
             No transactions yet.{" "}
-            <MuiLink component={NextLink} href="/finance/new">Add the first one.</MuiLink>
+            <NavLink href="/finance/new">Add the first one.</NavLink>
           </Typography>
         ) : (
           <Box sx={{ overflowX: "auto" }}>
@@ -145,13 +139,9 @@ export default async function FinancePage() {
                     </TableCell>
                     <TableCell>
                       {tx.events?.title ? (
-                        <MuiLink
-                          component={NextLink}
-                          href={`/events/${tx.event_id}`}
-                          underline="hover"
-                        >
+                        <NavLink href={`/events/${tx.event_id}`} underline="hover">
                           {tx.events.title}
-                        </MuiLink>
+                        </NavLink>
                       ) : (
                         "—"
                       )}

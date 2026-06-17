@@ -1,8 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import Link from "next/link";
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
 import Chip from "@mui/material/Chip";
@@ -14,6 +12,8 @@ import TableRow from "@mui/material/TableRow";
 import { resolveCurrentOrg } from "@/lib/org/membership";
 import { getEvent, getEventAssignments } from "@/lib/events/queries";
 import { deleteEvent } from "@/lib/events/actions";
+import Button from "@mui/material/Button";
+import { LinkButton } from "@/components/ui/LinkButton";
 import { EVENT_STATUS_LABELS, EVENT_STATUS_COLOR } from "@/lib/events/status";
 import { listQuotesForEvent } from "@/lib/quotes/queries";
 
@@ -142,9 +142,9 @@ export default async function EventDetailPage({ params }: Props) {
                     {q.total_gross.toLocaleString("ro-RO", { style: "currency", currency: q.currency })}
                   </TableCell>
                   <TableCell>
-                    <Button size="small" component={Link} href={`/events/${event.id}/quotes/${q.id}`}>
+                    <LinkButton size="small" href={`/events/${event.id}/quotes/${q.id}`}>
                       View
-                    </Button>
+                    </LinkButton>
                   </TableCell>
                 </TableRow>
               ))}
@@ -154,15 +154,15 @@ export default async function EventDetailPage({ params }: Props) {
       )}
 
       <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-        <Button variant="outlined" component={Link} href={`/events/${event.id}/edit`}>
+        <LinkButton variant="outlined" href={`/events/${event.id}/edit`}>
           Edit
-        </Button>
-        <Button variant="outlined" component={Link} href={`/events/${event.id}/quotes/new`}>
+        </LinkButton>
+        <LinkButton variant="outlined" href={`/events/${event.id}/quotes/new`}>
           New quote
-        </Button>
-        <Button variant="outlined" component={Link} href="/events">
+        </LinkButton>
+        <LinkButton variant="outlined" href="/events">
           Back
-        </Button>
+        </LinkButton>
         {canDelete && (
           <form action={deleteEvent.bind(null, event.id)}>
             <Button type="submit" variant="outlined" color="error">Delete</Button>

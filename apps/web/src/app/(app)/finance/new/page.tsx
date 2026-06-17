@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import NextLink from "next/link";
 import Box from "@mui/material/Box";
 import Breadcrumbs from "@mui/material/Breadcrumbs";
-import MuiLink from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
 import { createTransaction } from "@/lib/finance/actions";
 import TransactionForm from "@/components/finance/TransactionForm";
+import { NavLink } from "@/components/ui/NavLink";
 
 export const metadata: Metadata = { title: "Add Transaction" };
 // This page has no async server calls, so we force dynamic to prevent static
@@ -18,9 +17,9 @@ export default function NewTransactionPage() {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
       <Breadcrumbs>
-        <MuiLink component={NextLink} href="/finance" underline="hover" color="inherit">
+        <NavLink href="/finance" underline="hover" color="inherit">
           Finance
-        </MuiLink>
+        </NavLink>
         <Typography color="text.primary">Add transaction</Typography>
       </Breadcrumbs>
 

@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import Box from "@mui/material/Box";
 import Breadcrumbs from "@mui/material/Breadcrumbs";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
-import MuiLink from "@mui/material/Link";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -20,6 +18,7 @@ import {
   getDocumentFields,
 } from "@/lib/documents/queries";
 import { deleteDocument } from "@/lib/documents/actions";
+import { NavLink } from "@/components/ui/NavLink";
 
 export const metadata: Metadata = { title: "Document" };
 
@@ -62,9 +61,9 @@ export default async function DocumentDetailPage({ params }: PageProps) {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
       <Breadcrumbs>
-        <MuiLink component={Link} href="/documents" underline="hover" color="inherit">
+        <NavLink href="/documents" underline="hover" color="inherit">
           Documents
-        </MuiLink>
+        </NavLink>
         <Typography color="text.primary">{doc.file_name}</Typography>
       </Breadcrumbs>
 
@@ -121,13 +120,9 @@ export default async function DocumentDetailPage({ params }: PageProps) {
               <Typography variant="body2" color="text.secondary">
                 Event
               </Typography>
-              <MuiLink
-                component={Link}
-                href={`/events/${doc.event_id}`}
-                underline="hover"
-              >
+              <NavLink href={`/events/${doc.event_id}`} underline="hover">
                 {doc.events.title}
-              </MuiLink>
+              </NavLink>
             </>
           )}
 

@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import Box from "@mui/material/Box";
 import Breadcrumbs from "@mui/material/Breadcrumbs";
-import MuiLink from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
 import { resolveCurrentOrg } from "@/lib/org/membership";
 import { listEvents } from "@/lib/events/queries";
 import { uploadDocument } from "@/lib/documents/actions";
 import UploadForm from "@/components/documents/UploadForm";
+import { NavLink } from "@/components/ui/NavLink";
 
 export const metadata: Metadata = { title: "Upload Document" };
 
@@ -21,9 +20,9 @@ export default async function UploadDocumentPage() {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
       <Breadcrumbs>
-        <MuiLink component={Link} href="/documents" underline="hover" color="inherit">
+        <NavLink href="/documents" underline="hover" color="inherit">
           Documents
-        </MuiLink>
+        </NavLink>
         <Typography color="text.primary">Upload</Typography>
       </Breadcrumbs>
 
