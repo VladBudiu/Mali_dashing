@@ -14,6 +14,194 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_audit_logs: {
+        Row: {
+          answer_summary: string | null
+          created_at: string
+          id: string
+          message_id: string | null
+          organization_id: string
+          question: string
+          session_id: string | null
+          sources: Json
+          tools_used: Json
+          user_id: string | null
+        }
+        Insert: {
+          answer_summary?: string | null
+          created_at?: string
+          id?: string
+          message_id?: string | null
+          organization_id: string
+          question: string
+          session_id?: string | null
+          sources?: Json
+          tools_used?: Json
+          user_id?: string | null
+        }
+        Update: {
+          answer_summary?: string | null
+          created_at?: string
+          id?: string
+          message_id?: string | null
+          organization_id?: string
+          question?: string
+          session_id?: string | null
+          sources?: Json
+          tools_used?: Json
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_audit_logs_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "ai_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_audit_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_audit_logs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "ai_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          organization_id: string
+          role: string
+          session_id: string
+          token_usage: Json | null
+          tool_name: string | null
+          tool_payload: Json | null
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          id?: string
+          organization_id: string
+          role: string
+          session_id: string
+          token_usage?: Json | null
+          tool_name?: string | null
+          tool_payload?: Json | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          organization_id?: string
+          role?: string
+          session_id?: string
+          token_usage?: Json | null
+          tool_name?: string | null
+          tool_payload?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_messages_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "ai_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_notes: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          note: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          note: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          note?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_notes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          organization_id: string
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          organization_id: string
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          organization_id?: string
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_sessions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_contacts: {
         Row: {
           client_id: string
