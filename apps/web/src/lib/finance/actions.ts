@@ -5,6 +5,7 @@ import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { resolveCurrentOrg } from "@/lib/org/membership";
 import { getCurrentUser } from "@/lib/auth/session";
+import { resolveAmountRon } from "./amount";
 
 export type FinanceFormState =
   | { status: "idle" }
@@ -68,10 +69,11 @@ export async function createTransaction(
     return { status: "error", message: "Database unavailable" };
   }
 
-  const amountRon =
-    parsed.data.currency === "RON"
-      ? parsed.data.amount
-      : (parsed.data.amount_ron ?? null);
+  const amountRon = resolveAmountRon(
+    parsed.data.currency,
+    parsed.data.amount,
+    parsed.data.amount_ron,
+  );
 
   const { data, error } = await supabase
     .from("financial_transactions")
@@ -158,10 +160,11 @@ export async function createExpenseClaim(
     return { status: "error", message: "Database unavailable" };
   }
 
-  const amountRon =
-    parsed.data.currency === "RON"
-      ? parsed.data.amount
-      : (parsed.data.amount_ron ?? null);
+  const amountRon = resolveAmountRon(
+    parsed.data.currency,
+    parsed.data.amount,
+    parsed.data.amount_ron,
+  );
 
   const { error } = await supabase.from("expense_claims").insert({
     organization_id: currentOrg.organizationId,
