@@ -61,6 +61,9 @@ export default async function FinancePage() {
             Export CSV
           </Button>
         )}
+        <LinkButton href="/finance/claims/new" variant="outlined" size="small">
+          Submit claim
+        </LinkButton>
         <LinkButton href="/finance/new" variant="contained" size="small">
           Add transaction
         </LinkButton>
