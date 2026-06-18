@@ -24,6 +24,8 @@ export type TokenUsage = {
   output?: number;
   cacheRead?: number;
   cacheWrite?: number;
+  /** Model that produced this turn — needed to price it. */
+  model?: string;
 };
 
 export type AssistantRole = "user" | "assistant" | "tool";
