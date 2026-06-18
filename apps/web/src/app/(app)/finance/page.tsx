@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
+import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -50,6 +51,16 @@ export default async function FinancePage() {
         <Typography variant="h5" sx={{ fontWeight: 700, flex: 1 }}>
           Finance
         </Typography>
+        {transactions.length > 0 && (
+          <Button
+            component="a"
+            href="/finance/export"
+            variant="outlined"
+            size="small"
+          >
+            Export CSV
+          </Button>
+        )}
         <LinkButton href="/finance/new" variant="contained" size="small">
           Add transaction
         </LinkButton>
