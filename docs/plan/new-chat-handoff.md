@@ -1,6 +1,6 @@
 # New Chat Handoff
 
-> Last updated: 2026-06-18, end of Phase 11. Read this before writing any code.
+> Last updated: 2026-06-18, end of Phase 12. Read this before writing any code.
 
 ---
 
@@ -34,7 +34,7 @@ Never use another ref. Cannot be overridden.
    `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 5. **Gate**: all must be green before adding code.
    ```bash
-   npx vitest run --config vitest.config.ts   # must show 139 tests passed
+   npx vitest run --config vitest.config.ts   # must show 142 tests passed
    npm run build                               # must show 0 errors
    npm run lint                                # must be clean
    npm audit --audit-level=moderate           # must show 0 vulnerabilities
@@ -268,7 +268,7 @@ returns `{configured:false}` until the key is present).
 entry per answer. Verified on live DB: 7/7 `ai_*` RLS checks incl. per-user chat
 isolation. See `docs/session-logs/2026-06-18-phase-8a-assistant.md`.
 
-## 12b. Phases 8b–11 (DONE)
+## 12b. Phases 8b–12 (DONE)
 
 All merged to `main`. No migrations after 0013.
 - **8b** — assistant model tiering + cost/usage. `lib/assistant/models.ts` (registry +
@@ -279,17 +279,20 @@ All merged to `main`. No migrations after 0013.
   (owner-only, RLS-verified), `OrgSettingsForm`; `/settings` editable for owners.
 - **11** — finance CSV export. `lib/export/csv.ts` (pure RFC-4180 + BOM),
   `/finance/export` route handler, "Export CSV" button on `/finance`.
+- **12** — expense-claim submission. `lib/finance/amount.ts` (shared `resolveAmountRon`),
+  `ExpenseClaimForm`, `/finance/claims/new`, "Submit claim" button on `/finance`.
 
-## 12c. Phase 12 — pick one (NOT started)
+## 12c. Phase 13 — pick one (NOT started)
 
-Candidates, roughly by value:
-- **Expense-claim submission UI** — `createExpenseClaim` action already exists but no
-  form. Real gap: claims show in `/finance` but can't be submitted from the UI.
-- **Member management** in `/settings` (invite/role) — owner-only, new RLS care needed.
+Candidates, roughly by value. Note the ones needing a new dependency or check-in:
+- **Member management** in `/settings` (invite/role) — owner-only; needs an invite
+  flow (likely Supabase admin/email) → confirm approach first.
 - **Assistant write-actions (8c)** — propose → user confirms → existing validated
-  server action runs + audit. Keep read-only default. Bigger/riskier.
-- **PWA polish** — real PNG icons (192/512 maskable), offline caching.
-- **More exports** — events CSV, PDF quote.
+  server action runs + audit. Keep read-only default. Bigger/riskier → confirm first.
+- **PWA polish** — real PNG icons (192/512 maskable) + offline caching. Low logic,
+  mostly assets.
+- **More exports** — events CSV (reuse `lib/export/csv.ts`), or PDF quote (new dep).
+- **VAT/reporting** — period summaries, VAT journal (fiscal — validate rules first).
 
 ### Gate before any PR
 ```bash
