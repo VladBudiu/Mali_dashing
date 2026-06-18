@@ -1,6 +1,6 @@
 # New Chat Handoff
 
-> Last updated: 2026-06-18, end of Phase 8a. Read this before writing any code.
+> Last updated: 2026-06-18, end of Phase 11. Read this before writing any code.
 
 ---
 
@@ -21,19 +21,20 @@ Never use another ref. Cannot be overridden.
 
 1. **Supabase MCP**: confirm `mcp__supabase__*` tools are available. If not, stop.
 2. **Isolation check**: confirm `.mcp.json` project ref = `rtnuhqjpqqdyelzlmbkq`.
-3. **Branch**: `main` is current. Phase 8a is in PR (`feature/phase-8a-assistant`) —
-   merge it first if still open. Then for 8b:
+3. **Branch**: `main` is current (phases 0–11 merged). Create the next phase branch:
    ```bash
-   git switch main && git pull && git switch -c feature/phase-8b-assistant
+   git switch main && git pull && git switch -c feature/phase-12-<name>
    ```
-   ⚠️ **To make the assistant live**, add `ANTHROPIC_API_KEY` to `apps/web/.env.local`
-   (server-side only, never `NEXT_PUBLIC_*`). No code change needed — see §12.
+   Candidate next phases (§12): expense-claim submission UI, member management,
+   assistant write-actions (8c), PWA icons/offline, more CSV/PDF exports.
+   ⚠️ The assistant is **live** — `ANTHROPIC_API_KEY` is set in `apps/web/.env.local`
+   (correct spelling; a misspelled `ANTROPHIC_*` was fixed). Verified with a real Haiku call.
 4. **Env**: `apps/web/.env.local` must exist (gitignored — never commit it).
    If missing, fetch from MCP and recreate with two keys:
    `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 5. **Gate**: all must be green before adding code.
    ```bash
-   npx vitest run --config vitest.config.ts   # must show 110 tests passed
+   npx vitest run --config vitest.config.ts   # must show 139 tests passed
    npm run build                               # must show 0 errors
    npm run lint                                # must be clean
    npm audit --audit-level=moderate           # must show 0 vulnerabilities
@@ -139,7 +140,9 @@ apps/web/src/
 │   ├── fx/           bnr.ts, bnr.test.ts        ← BNR XML parser
 │   ├── inventory/    stock.ts (+test), queries.ts, actions.ts
 │   ├── pricing/      pricing.ts (+test)         ← cost→price/margin calculator
-│   ├── assistant/    registry/tools/dispatch/prompt/sources/history/audit/claude/actions
+│   ├── assistant/    registry/tools/dispatch/prompt/sources/history/audit/claude/actions/models/cost/usage
+│   ├── dashboard/    compute.ts (+test), stats.ts   ← live dashboard aggregations
+│   ├── export/       csv.ts (+test)             ← pure RFC-4180 CSV + BOM
 │   └── money/        format.ts                  ← formatMoney, roundMoney
 ├── components/
 │   ├── ui/           LinkButton, NavLink, LinkRow, LinkListItemButton
@@ -265,22 +268,33 @@ returns `{configured:false}` until the key is present).
 entry per answer. Verified on live DB: 7/7 `ai_*` RLS checks incl. per-user chat
 isolation. See `docs/session-logs/2026-06-18-phase-8a-assistant.md`.
 
-## 12b. Phase 8b — AI assistant, next (NOT started)
+## 12b. Phases 8b–11 (DONE)
 
-Branch: `feature/phase-8b-assistant`. Candidate scope:
-- Model tiering/escalation (Haiku → Sonnet when needed); streaming responses.
-- Write-actions **with explicit confirmation** (e.g. create a transaction) — keep
-  the read-only default; gate any mutation behind a user confirm step + audit.
-- Richer source rendering; per-org cost dashboard from stored `token_usage`.
-- `ai_messages` currently stores tool turns but the model history window only
-  replays user/assistant text — revisit if tool-call continuity matters.
+All merged to `main`. No migrations after 0013.
+- **8b** — assistant model tiering + cost/usage. `lib/assistant/models.ts` (registry +
+  pricing), `cost.ts` (estimateCostUSD), `usage.ts`; `/assistant` shows a usage strip.
+- **9** — live dashboard. `lib/dashboard/{compute,stats}.ts`; `/dashboard` shows real
+  cards (cash, upcoming events, low stock, pending claims) + upcoming/recent panels.
+- **10** — org settings. `lib/org/settings.ts` (schema), `updateOrganization` action
+  (owner-only, RLS-verified), `OrgSettingsForm`; `/settings` editable for owners.
+- **11** — finance CSV export. `lib/export/csv.ts` (pure RFC-4180 + BOM),
+  `/finance/export` route handler, "Export CSV" button on `/finance`.
 
-### Gate before PR
+## 12c. Phase 12 — pick one (NOT started)
+
+Candidates, roughly by value:
+- **Expense-claim submission UI** — `createExpenseClaim` action already exists but no
+  form. Real gap: claims show in `/finance` but can't be submitted from the UI.
+- **Member management** in `/settings` (invite/role) — owner-only, new RLS care needed.
+- **Assistant write-actions (8c)** — propose → user confirms → existing validated
+  server action runs + audit. Keep read-only default. Bigger/riskier.
+- **PWA polish** — real PNG icons (192/512 maskable), offline caching.
+- **More exports** — events CSV, PDF quote.
+
+### Gate before any PR
 ```bash
-npx vitest run --config vitest.config.ts   # all pass (currently 110)
-npm run build                               # no TS errors
-npm run lint                                # clean
-npm audit --audit-level=moderate           # 0 vulns
+npx vitest run --config vitest.config.ts   # all pass (currently 139)
+npm run build && npm run lint && npm audit --audit-level=moderate
 ```
 
 ---
