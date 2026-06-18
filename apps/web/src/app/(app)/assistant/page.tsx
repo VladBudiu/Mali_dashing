@@ -3,6 +3,8 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { resolveCurrentOrg } from "@/lib/org/membership";
 import { listSessions, getMessages } from "@/lib/assistant/history";
+import { getAssistantUsage } from "@/lib/assistant/usage";
+import { formatUSD } from "@/lib/assistant/cost";
 import AssistantChat from "@/components/assistant/AssistantChat";
 import { LinkButton } from "@/components/ui/LinkButton";
 import { NavLink } from "@/components/ui/NavLink";
@@ -17,9 +19,15 @@ export default async function AssistantPage({ searchParams }: PageProps) {
   const currentOrg = await resolveCurrentOrg();
   if (!currentOrg) return null;
 
-  const sessions = await listSessions(currentOrg.organizationId);
+  const [sessions, usage] = await Promise.all([
+    listSessions(currentOrg.organizationId),
+    getAssistantUsage(currentOrg.organizationId),
+  ]);
   const activeId = session ?? sessions[0]?.id ?? null;
   const messages = activeId ? await getMessages(activeId) : [];
+
+  const totalTokens =
+    usage.totals.input + usage.totals.output + usage.totals.cacheRead + usage.totals.cacheWrite;
 
   const initialMessages = messages
     .filter((m) => m.role === "user" || m.role === "assistant")
@@ -35,6 +43,15 @@ export default async function AssistantPage({ searchParams }: PageProps) {
           New chat
         </LinkButton>
       </Box>
+
+      {usage.messageCount > 0 && (
+        <Typography variant="caption" color="text.secondary">
+          Your usage: {usage.messageCount} replies · {totalTokens.toLocaleString("ro-RO")} tokens ·{" "}
+          ~{formatUSD(usage.totals.costUSD)}
+          {usage.totals.cacheRead > 0 &&
+            ` · ${usage.totals.cacheRead.toLocaleString("ro-RO")} tokens served from cache`}
+        </Typography>
+      )}
 
       {sessions.length > 0 && (
         <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>

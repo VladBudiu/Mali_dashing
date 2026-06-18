@@ -6,11 +6,9 @@ import { runTool } from "./dispatch";
 import type { ToolContext } from "./tools";
 import { buildSystemPrompt } from "./prompt";
 import { sourcesFromResults } from "./sources";
+import { resolveModel } from "./models";
 import type { AssistantSource, ToolResult, TokenUsage } from "./types";
 
-// Haiku 4.5 — cheapest tier, ample for tool-driven structured Q&A. Override with
-// ASSISTANT_MODEL if a turn needs more reasoning.
-const DEFAULT_MODEL = "claude-haiku-4-5-20251001";
 const MAX_TOOL_ROUNDS = 6;
 
 export type AssistantTurnInput = {
@@ -58,7 +56,7 @@ export async function runAssistantTurn(
   if (!isConfigured()) return { configured: false };
 
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-  const model = process.env.ASSISTANT_MODEL || DEFAULT_MODEL;
+  const model = resolveModel(process.env.ASSISTANT_MODEL);
 
   // Cache the stable prefix: system prompt + tool definitions.
   const system: Anthropic.TextBlockParam[] = [
@@ -79,7 +77,7 @@ export async function runAssistantTurn(
     { role: "user", content: input.question },
   ];
 
-  const usage: TokenUsage = {};
+  const usage: TokenUsage = { model };
   const toolsUsed: string[] = [];
   const allResults: ToolResult[] = [];
 
