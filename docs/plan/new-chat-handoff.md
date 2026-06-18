@@ -1,6 +1,6 @@
 # New Chat Handoff
 
-> Last updated: 2026-06-18, end of Phase 7. Read this before writing any code.
+> Last updated: 2026-06-18, end of Phase 8a. Read this before writing any code.
 
 ---
 
@@ -21,17 +21,19 @@ Never use another ref. Cannot be overridden.
 
 1. **Supabase MCP**: confirm `mcp__supabase__*` tools are available. If not, stop.
 2. **Isolation check**: confirm `.mcp.json` project ref = `rtnuhqjpqqdyelzlmbkq`.
-3. **Branch**: `main` is current. Create `feature/phase-8-assistant` before starting work.
+3. **Branch**: `main` is current. Phase 8a is in PR (`feature/phase-8a-assistant`) —
+   merge it first if still open. Then for 8b:
    ```bash
-   git switch main && git pull && git switch -c feature/phase-8-assistant
+   git switch main && git pull && git switch -c feature/phase-8b-assistant
    ```
-   (Phase 7 `feature/phase-7-pricing` is in PR — merge it first if still open.)
+   ⚠️ **To make the assistant live**, add `ANTHROPIC_API_KEY` to `apps/web/.env.local`
+   (server-side only, never `NEXT_PUBLIC_*`). No code change needed — see §12.
 4. **Env**: `apps/web/.env.local` must exist (gitignored — never commit it).
    If missing, fetch from MCP and recreate with two keys:
    `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 5. **Gate**: all must be green before adding code.
    ```bash
-   npx vitest run --config vitest.config.ts   # must show 95 tests passed
+   npx vitest run --config vitest.config.ts   # must show 110 tests passed
    npm run build                               # must show 0 errors
    npm run lint                                # must be clean
    npm audit --audit-level=moderate           # must show 0 vulnerabilities
@@ -117,6 +119,7 @@ to prevent static prerender failures from the above wrappers.
 | `0011_inventory.sql` | `inventory_items`, `inventory_movements` (stock + audit trail) |
 | `0012_rls_initplan_fix.sql` | rewrites expense_claims UPDATE policy with `(select auth.uid())` (perf) |
 | _Phase 7 (pricing) added no migration — the calculator is client-side/ephemeral._ | |
+| `0013_ai_assistant.sql` | `ai_sessions`, `ai_messages`, `ai_audit_logs`, `ai_notes` (assistant's own write surface) |
 
 ---
 
@@ -136,6 +139,7 @@ apps/web/src/
 │   ├── fx/           bnr.ts, bnr.test.ts        ← BNR XML parser
 │   ├── inventory/    stock.ts (+test), queries.ts, actions.ts
 │   ├── pricing/      pricing.ts (+test)         ← cost→price/margin calculator
+│   ├── assistant/    registry/tools/dispatch/prompt/sources/history/audit/claude/actions
 │   └── money/        format.ts                  ← formatMoney, roundMoney
 ├── components/
 │   ├── ui/           LinkButton, NavLink, LinkRow, LinkListItemButton
@@ -231,36 +235,49 @@ Shipped on `feature/phase-7-pricing`. Ephemeral (no migration). For reference:
 
 ---
 
-## 12. Phase 8 — AI assistant (NEXT)
+## 12. Phase 8a — AI assistant (DONE, except the API key)
 
-Branch to create: `feature/phase-8-assistant`. Placeholder route `/assistant`
-exists and a nav entry is present.
+Shipped on `feature/phase-8a-assistant`. Read-only, RLS-scoped Q&A + chat history
++ audit. Everything works except the live model call, gated on `ANTHROPIC_API_KEY`.
 
-Goal: permission-aware Q&A over the org's own data (events, finance, inventory,
-clients). See `PROJECT_SOURCE_OF_TRUTH.md` §"AI assistant" and §"OCR, AI și
-securitate" for the canonical requirements.
+**▶ To make it live (the only remaining step):**
+add to `apps/web/.env.local` (server-side only, never `NEXT_PUBLIC_*`):
+```
+ANTHROPIC_API_KEY=sk-ant-...
+# optional, defaults to claude-haiku-4-5-20251001:
+ASSISTANT_MODEL=claude-haiku-4-5-20251001
+```
+With no key, `/assistant` works (history, saved notes) and replies with a config
+notice. Adding the key flips it on with no code change (`lib/assistant/claude.ts`
+returns `{configured:false}` until the key is present).
 
-### Non-negotiable security rules (from the blueprint)
-- The assistant answers **only within the user's RLS scope** — it must run
-  queries through the user's session client (anon key + RLS), **never the service
-  role key**. No cross-org data, ever.
-- Any answer containing totals/profit/tax/balance must **link to the source rows**
-  and write an **audit entry** (`ai_audit_logs`).
-- Prompt redaction for sensitive data; minimal necessary processing.
+**Architecture (cost-efficient):**
+- `lib/assistant/registry.ts` — tool whitelist: 9 read-only query tools + `save_note`
+  (the ONLY write, to `ai_notes`). Zod validation + Anthropic JSON schemas. Pure, tested.
+- `lib/assistant/tools.ts` — handlers run through the user's **RLS session, never
+  service role**. `dispatch.ts` validates then runs.
+- `prompt.ts` — cacheable system prompt (date kept last); `claude.ts` marks system +
+  tools with `cache_control` (~10% input on repeat turns); Haiku 4.5 default.
+- `history.ts` / `audit.ts` — persistence; every figure links to source rows.
+- `actions.ts` `sendAssistantMessage`; UI `components/assistant/AssistantChat.tsx`.
 
-### Suggested scope (confirm with user first)
-- Model: use the latest Claude model (see CLAUDE.md env — `claude-opus-4-8` or
-  current default). API key server-side only, never `NEXT_PUBLIC_*`.
-- Likely needs tables `ai_sessions`, `ai_audit_logs` (migration `0013_ai.sql`,
-  org-scoped RLS like everything else).
-- Start read-only: natural-language question → structured query over a **whitelist**
-  of safe aggregations, rendered with source links. Do NOT let the model run
-  arbitrary SQL with elevated rights.
-- Keep any pure request/response shaping in a `lib/assistant/` module and unit-test it.
+**Security rules honored:** RLS-scoped only, no service role, source links + audit
+entry per answer. Verified on live DB: 7/7 `ai_*` RLS checks incl. per-user chat
+isolation. See `docs/session-logs/2026-06-18-phase-8a-assistant.md`.
+
+## 12b. Phase 8b — AI assistant, next (NOT started)
+
+Branch: `feature/phase-8b-assistant`. Candidate scope:
+- Model tiering/escalation (Haiku → Sonnet when needed); streaming responses.
+- Write-actions **with explicit confirmation** (e.g. create a transaction) — keep
+  the read-only default; gate any mutation behind a user confirm step + audit.
+- Richer source rendering; per-org cost dashboard from stored `token_usage`.
+- `ai_messages` currently stores tool turns but the model history window only
+  replays user/assistant text — revisit if tool-call continuity matters.
 
 ### Gate before PR
 ```bash
-npx vitest run --config vitest.config.ts   # all pass (currently 95)
+npx vitest run --config vitest.config.ts   # all pass (currently 110)
 npm run build                               # no TS errors
 npm run lint                                # clean
 npm audit --audit-level=moderate           # 0 vulns
