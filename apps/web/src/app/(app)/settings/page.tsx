@@ -7,10 +7,17 @@ import Typography from "@mui/material/Typography";
 import PageHeader from "@/components/ui/PageHeader";
 import SignOutButton from "@/components/auth/SignOutButton";
 import OrgSwitcher from "@/components/org/OrgSwitcher";
+import OrgSettingsForm from "@/components/org/OrgSettingsForm";
 import { getCurrentUser } from "@/lib/auth/session";
-import { listUserOrganizations, resolveCurrentOrg } from "@/lib/org/membership";
+import {
+  getOrganization,
+  listUserOrganizations,
+  resolveCurrentOrg,
+} from "@/lib/org/membership";
+import { vatModeLabel } from "@/lib/org/settings";
 
 export const metadata: Metadata = { title: "Settings" };
+export const dynamic = "force-dynamic";
 
 function SettingsSection({
   title,
@@ -38,6 +45,11 @@ export default async function SettingsPage() {
     resolveCurrentOrg(),
   ]);
 
+  const orgSettings = currentOrg
+    ? await getOrganization(currentOrg.organizationId)
+    : null;
+  const isOwner = currentOrg?.role === "owner";
+
   return (
     <Stack spacing={3}>
       <PageHeader
@@ -59,10 +71,30 @@ export default async function SettingsPage() {
           memberships={memberships}
           currentOrgId={currentOrg?.organizationId ?? ""}
         />
-        <Divider />
-        <Typography variant="caption" color="text.secondary">
-          Fiscal configuration and member management arrive in a later phase.
-        </Typography>
+        {orgSettings && (
+          <>
+            <Divider />
+            {isOwner ? (
+              <OrgSettingsForm
+                defaults={{
+                  name: orgSettings.name,
+                  vat_mode: orgSettings.vat_mode,
+                  base_currency: orgSettings.base_currency,
+                }}
+              />
+            ) : (
+              <Box>
+                <Typography variant="body2" color="text.secondary">
+                  {orgSettings.name} · {vatModeLabel(orgSettings.vat_mode)} ·{" "}
+                  {orgSettings.base_currency}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Only an owner can change organization settings.
+                </Typography>
+              </Box>
+            )}
+          </>
+        )}
       </SettingsSection>
     </Stack>
   );

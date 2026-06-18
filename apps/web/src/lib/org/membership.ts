@@ -45,6 +45,29 @@ export async function listUserOrganizations(): Promise<OrgMembership[]> {
   }));
 }
 
+export type OrganizationSettings = {
+  name: string;
+  vat_mode: string;
+  base_currency: string;
+};
+
+/** Fetches the editable settings for one organization (RLS-scoped to members). */
+export async function getOrganization(
+  organizationId: string,
+): Promise<OrganizationSettings | null> {
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from("organizations")
+    .select("name, vat_mode, base_currency")
+    .eq("id", organizationId)
+    .single<OrganizationSettings>();
+
+  if (error || !data) return null;
+  return data;
+}
+
 /**
  * Resolves the active organization for the request: the one named by the
  * current-org cookie when the user is still a member, otherwise their first
